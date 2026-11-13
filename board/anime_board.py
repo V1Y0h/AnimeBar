@@ -445,10 +445,11 @@ def main():
   .body {{ padding:12px; display:flex; flex-direction:column; gap:8px; flex:1; }}
   h3 {{ margin:0; font-size:13px; font-weight:600; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }}
   .meta {{ margin:0; font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums; }}
-  .acts {{ display:flex; gap:6px; margin-top:auto; }}
+  .acts {{ display:flex; gap:6px; margin-top:auto; flex-wrap:wrap; }}
   .acts a, .acts button {{ font-size:11px; padding:4px 9px; border-radius:7px; border:1px solid var(--line); background:transparent; color:var(--dim); text-decoration:none; line-height:1.4; }}
   .acts a:hover, .acts button:hover {{ background:var(--surface2); color:var(--txt); border-color:var(--line2); }}
   .acts .watch {{ color:var(--link); border-color:#1e3a5f; }}
+  .acts .note {{ color:var(--accent); border-color:#166534; }}
   .acts .cp.done {{ color:var(--accent); border-color:var(--accent); }}
   .notes-wrap {{ padding:20px; max-width:720px; margin:0 auto; }}
   .notes-wrap label {{ display:block; font-size:11px; color:var(--dim); margin:10px 0 4px; }}
