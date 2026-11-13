@@ -51,6 +51,7 @@ static NSString *ResPath(NSString *name) {
     WKWebViewConfiguration *cfg = [[WKWebViewConfiguration alloc] init];
     [cfg.userContentController addScriptMessageHandler:self name:@"anich"];
     [cfg.userContentController addScriptMessageHandler:self name:@"openurl"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"copy"];
     self.web = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720) configuration:cfg];
     vc.view = self.web;
     self.popover.contentViewController = vc;
@@ -152,6 +153,15 @@ static NSString *ResPath(NSString *name) {
 - (void)doRefresh { [self load]; }
 
 - (void)userContentController:(WKUserContentController *)ucc didReceiveScriptMessage:(WKScriptMessage *)msg {
+    if ([msg.name isEqualToString:@"copy"]) {
+        NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
+        if (t.length) {
+            NSPasteboard *pb = [NSPasteboard generalPasteboard];
+            [pb clearContents];
+            [pb setString:t forType:NSPasteboardTypeString];
+        }
+        return;
+    }
     if ([msg.name isEqualToString:@"openurl"]) {
         NSString *u = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
         if (u.length) {

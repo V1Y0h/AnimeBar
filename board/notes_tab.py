@@ -96,8 +96,12 @@ NOTES_JS = r"""
     ['n-phenomena', 'n-speculations'].forEach((id) => {
       document.querySelectorAll('#' + id + ' button.on').forEach((b) => tags.push(b.dataset.tag));
     });
-    document.querySelectorAll('#view-notes .chips[data-dim] button.on').forEach((b) => tags.push(b.dataset.tag));
-    notes = [{ id: String(Date.now()), title, tags, evidence: $('n-evidence').value.trim(), reflection: $('n-reflection').value.trim() }].concat(notes);
+    const dims = {};
+    document.querySelectorAll('#view-notes .chips[data-dim]').forEach((box) => {
+      const on = box.querySelector('button.on');
+      dims[box.dataset.dim] = on ? on.dataset.tag : '';
+    });
+    notes = [{ id: String(Date.now()), title, tags, dims, evidence: $('n-evidence').value.trim(), reflection: $('n-reflection').value.trim() }].concat(notes);
     save(); render();
     $('n-reflection').value = ''; $('n-evidence').value = '';
     document.querySelectorAll('#view-notes .chips button.on').forEach((b) => b.classList.remove('on'));
@@ -106,7 +110,7 @@ NOTES_JS = r"""
   $('n-copy').onclick = () => {
     const byTitle = {};
     notes.forEach((n) => { (byTitle[n.title] = byTitle[n.title] || []).push(n); });
-    const H = T('# 制作人视角记录', '# Producer Lens', '# 制作者視点');
+    const H = T('# 制作人视角记录', "# Producer's Lens", '# 制作者視点');
     const out = [H, ''];
     Object.keys(byTitle).forEach((t) => {
       out.push('## ' + t, '');
@@ -114,16 +118,28 @@ NOTES_JS = r"""
         const tags = n.tags || (n.phenomena || []).concat(n.speculations || []);
         out.push('- ' + T('记录', 'Note', '記録'));
         if (tags.length) out.push('  - ' + T('标签：', 'Tags: ', 'タグ：') + tags.map(tTag).join('、'));
+        const dims = n.dims || {};
+        const dimParts = ['art', 'staging', 'sound'].filter((k) => dims[k]).map((k) => {
+          const dl = DIM[k][lang() === 'ja' ? 2 : lang() === 'en' ? 1 : 0];
+          return dl + '·' + tTag(dims[k]);
+        });
+        if (dimParts.length) out.push('  - ' + T('维度：', 'Dimensions: ', '軸：') + dimParts.join('，'));
         if (n.evidence) out.push('  - ' + T('依据：', 'Evidence: ', '根拠：') + n.evidence);
         if (n.reflection) out.push('  - ' + T('如果是我：', 'If it were me: ', '自分なら：') + n.reflection);
       });
       out.push('');
     });
-    const ta = document.createElement('textarea');
-    ta.value = out.join('\n');
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); } catch (e) {}
-    document.body.removeChild(ta);
+    const text = out.join('\n');
+    const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.copy;
+    if (h) {
+      h.postMessage(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
     $('n-copy').querySelectorAll('span').forEach((s) => { s.textContent = T('已复制', 'Copied', 'コピーしました'); });
     setTimeout(() => { $('n-copy').querySelectorAll('span').forEach((s) => { s.textContent = T('复制 Markdown', 'Copy Markdown', 'Markdown をコピー'); }); }, 1500);
   };
@@ -150,6 +166,7 @@ NOTES_JS = r"""
     '用力过猛': ['Overwrought', 'やりすぎ'], '加分项': ['Adds value', '加点'], '无感': ['Forgettable', '響かない'],
     '出戏': ['Breaks immersion', '没入できない'],
   };
+  const DIM = { art: ['作画', 'sakuga', '作画'], staging: ['演出', 'direction', '演出'], sound: ['声音', 'sound', '音響'] };
   const tTag = (zh) => {
     const p = TAG[zh];
     if (!p) return zh;
