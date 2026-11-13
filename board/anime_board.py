@@ -150,7 +150,7 @@ JA = {
     "新番": "新作", "剧场版": "劇場版", "上映中": "上映中", "记录": "記録",
     "全部": "全て", "周一": "月", "周二": "火", "周三": "水", "周四": "木", "周五": "金", "周六": "土", "周日": "日",
     "按热度": "人気順", "按最新": "新着順",
-    "详情": "詳細", "复制": "コピー", "打点": "記録する",
+    "详情": "詳細", "复制": "コピー", "打点": "記録する", "AniCh": "視聴",
     "作品名": "作品名", "现象": "兆候", "推测": "推測", "维度": "軸",
     "作画": "作画", "演出": "演出", "声音": "音響",
     "如果是我": "自分なら", "保存": "保存", "复制 Markdown": "Markdown をコピー",
@@ -197,7 +197,7 @@ def card(it):
           <a class="detail" href="{esc(url)}" data-bgm="{esc(url)}" data-title="{esc(name)}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(name)}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(name)}">{L('打点','Note')}</button>
-          <button class="watch" data-name="{esc(name)}">AniCh</button>
+          <button class="watch" data-name="{esc(name)}">{L('AniCh','Watch')}</button>
         </div>
       </div>
     </article>"""
@@ -324,7 +324,7 @@ def movie_card(m):
           <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
-          <button class="watch" data-name="{esc(m['name'])}">AniCh</button>
+          <button class="watch" data-name="{esc(m['name'])}">{L('AniCh','Watch')}</button>
         </div>
       </div>
     </article>"""
@@ -361,7 +361,7 @@ def showing_card(m):
           <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
-          <button class="watch" data-name="{esc(m['name'])}">AniCh</button>
+          <button class="watch" data-name="{esc(m['name'])}">{L('AniCh','Watch')}</button>
         </div>
       </div>
     </article>"""
@@ -556,6 +556,12 @@ def main():
       kids.forEach(k => grid.appendChild(k));
     }}
   }}
+  document.querySelectorAll('a.detail').forEach(a => a.addEventListener('click', (e) => {{
+    e.preventDefault();
+    const u = a.href;
+    const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openurl;
+    if (h) {{ h.postMessage(u); }} else {{ window.open(u, '_blank'); }}
+  }}));
   document.querySelectorAll('button[data-sort]').forEach(b => b.onclick = () => {{
     sortKey = b.dataset.sort;
     document.querySelectorAll('button[data-sort]').forEach(x => x.classList.toggle('on', x === b));
@@ -580,8 +586,12 @@ def main():
   document.querySelectorAll('.watch').forEach(b => b.onclick = () => {{
     const n = b.dataset.name;
     const lang = document.body.classList.contains('ja') ? 'ja' : document.body.classList.contains('en') ? 'en' : 'zh';
-    if (lang === 'en') {{ window.open('https://www.crunchyroll.com/search?q=' + encodeURIComponent(n), '_blank'); return; }}
-    if (lang === 'ja') {{ window.open('https://animestore.docomo.ne.jp/animestore/search?q=' + encodeURIComponent(n), '_blank'); return; }}
+    const openUrl = (u) => {{
+      const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openurl;
+      if (h) h.postMessage(u); else window.open(u, '_blank');
+    }};
+    if (lang === 'en') {{ openUrl('https://www.crunchyroll.com/search?q=' + encodeURIComponent(n)); return; }}
+    if (lang === 'ja') {{ openUrl('https://animestore.docomo.ne.jp/animestore/search?q=' + encodeURIComponent(n)); return; }}
     const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.anich;
     if (h) {{ h.postMessage(n); b.textContent = '已送出'; }}
     else {{ navigator.clipboard.writeText(n).catch(()=>{{}}); b.textContent = '已复制'; }}
