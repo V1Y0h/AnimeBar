@@ -29,6 +29,22 @@ _CACHE = load()
 _QUOTA = 40
 
 
+def _jwiki(query):
+    import urllib.parse
+    q = urllib.parse.quote(query)
+    url = f"https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch={q}&format=json&srlimit=1"
+    req = urllib.request.Request(url, headers=UA)
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.load(r)
+        hits = (data.get("query") or {}).get("search") or []
+        if hits and _has_kana(hits[0]["title"]):
+            return hits[0]["title"]
+    except Exception:
+        pass
+    return ""
+
+
 def _alias_kana(detail):
     for row in (detail.get("infobox") or []):
         if row.get("key") not in ("别名", "日文名"):
@@ -69,7 +85,7 @@ def lookup(orig):
         req2 = urllib.request.Request(f"https://api.bgm.tv/v0/subjects/{sid}", headers=UA)
         with urllib.request.urlopen(req2, timeout=20) as r:
             detail = json.load(r)
-        ja = _alias_kana(detail)
+        ja = _alias_kana(detail) or _jwiki(orig)
         _CACHE[orig] = ja or None
         return ja or orig
     except Exception:

@@ -196,6 +196,7 @@ def card(it):
         <div class="acts">
           <a href="{esc(url)}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(name)}">{L('复制','Copy')}</button>
+          <button class="note" data-name="{esc(name)}">{L('打点','Note')}</button>
           <button class="watch" data-name="{esc(name)}">AniCh</button>
         </div>
       </div>
@@ -322,6 +323,7 @@ def movie_card(m):
         <div class="acts">
           <a href="{esc(m['url'])}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
+          <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
           <button class="watch" data-name="{esc(m['name'])}">AniCh</button>
         </div>
       </div>
@@ -358,6 +360,7 @@ def showing_card(m):
         <div class="acts">
           <a href="{esc(m['url'])}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
+          <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
           <button class="watch" data-name="{esc(m['name'])}">AniCh</button>
         </div>
       </div>

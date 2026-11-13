@@ -3,6 +3,7 @@ sys.path.insert(0, "board")
 import anime_board as ab, ja_titles as jt
 
 jt._QUOTA = 100000
+jt._CACHE = {k: v for k, v in jt._CACHE.items() if v}  # 清掉 None 以便重试
 rows = []
 for day in ab.fetch():
     for it in day.get("items", []):
