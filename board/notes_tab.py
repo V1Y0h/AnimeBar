@@ -4,7 +4,7 @@ NOTES_HTML = """
 <main id="view-notes" hidden>
   <div class="notes-wrap">
     <label><span class="l-zh">作品名</span><span class="l-en">Title</span></label>
-    <input id="n-title" data-zh="哪一部" data-en="Which title" placeholder="哪一部">
+    <input id="n-title" data-zh="哪一部" data-en="Which title" data-ja="どの作品" placeholder="哪一部">
     <label><span class="l-zh">现象</span><span class="l-en">Symptoms</span></label>
     <div class="chips" id="n-phenomena">
       <button type="button" data-tag="静止画多"><span class="l-zh">静止画多</span><span class="l-en">Many stills</span></button>
@@ -21,7 +21,7 @@ NOTES_HTML = """
       <button type="button" data-tag="作监尽力"><span class="l-zh">作监尽力</span><span class="l-en">AD carried it</span></button>
       <button type="button" data-tag="资方干预"><span class="l-zh">资方干预</span><span class="l-en">Producer meddling</span></button>
     </div>
-    <input id="n-evidence" data-zh="依据" data-en="Evidence" placeholder="依据">
+    <input id="n-evidence" data-zh="依据" data-en="Evidence" data-ja="根拠" placeholder="依据">
     <label><span class="l-zh">维度</span><span class="l-en">Dimensions</span></label>
     <label><span class="l-zh">作画</span><span class="l-en">sakuga</span><span class="l-ja">作画</span></label>
     <div class="chips" data-dim="art">
@@ -42,7 +42,7 @@ NOTES_HTML = """
       <button type="button" data-tag="出戏"><span class="l-zh">出戏</span><span class="l-en">Breaks immersion</span></button>
     </div>
     <label><span class="l-zh">如果是我</span><span class="l-en">What I would do</span></label>
-    <textarea id="n-reflection" data-zh="反思" data-en="Reflection" placeholder="反思"></textarea>
+    <textarea id="n-reflection" data-zh="反思" data-en="Reflection" data-ja="自分なら" placeholder="反思"></textarea>
     <div class="nbar">
       <button type="button" id="n-save" class="primary"><span class="l-zh">保存</span><span class="l-en">Save</span></button>
       <button type="button" id="n-copy" class="ghost"><span class="l-zh">复制 Markdown</span><span class="l-en">Copy Markdown</span></button>
@@ -81,7 +81,7 @@ NOTES_JS = r"""
     if (!notes.length) { list.innerHTML = '<p class="empty">' + T('还没有记录', 'No notes yet') + '</p>'; return; }
     list.innerHTML = notes.map((n) => '<div class="note"><div class="note-head"><b>' + esc(n.title) + '</b>'
       + '<button class="del" data-id="' + n.id + '">' + T('删除', 'Delete') + '</button></div>'
-      + (n.tags.length ? '<div class="note-tags">' + esc(n.tags.join(' · ')) + '</div>' : '')
+      + (n.tags.length ? '<div class="note-tags">' + esc(n.tags.map(tTag).join(' · ')) + '</div>' : '')
       + (n.reflection ? '<div class="note-ref">' + T('如果是我：', 'If it were me: ') + esc(n.reflection) + '</div>' : '')
       + '</div>').join('');
     list.querySelectorAll('.del').forEach((b) => {
@@ -137,10 +137,26 @@ NOTES_JS = r"""
     $('n-title').focus();
   });
 
+  const TAG = {
+    '静止画多': ['Many stills', '静止画が多い'], '精度落差': ['Quality drop', '精度の落差'],
+    '画风突变': ['Style shift', '絵柄の変化'], '重复镜头': ['Repeated shots', '繰り返しカット'],
+    '演出神回': ['Standout episode', '神回の演出'], '评分分歧': ['Score divergence', '評価の乖離'],
+    '疑似外包': ['Suspected outsourcing', '外注の可能性'], '工期紧张': ['Schedule crunch', '工期逼迫'],
+    '作监尽力': ['AD carried it', '作監の踏ん張り'], '资方干预': ['Producer meddling', '出資者の介入'],
+    '值得学习': ['Worth studying', '参考になる'], '中规中矩': ['By the book', '可もなく不可もなく'],
+    '有待提高': ['Needs work', '要改善'], '有巧思': ['Clever', '工夫がある'], '平淡': ['Flat', '平凡'],
+    '用力过猛': ['Overwrought', 'やりすぎ'], '加分项': ['Adds value', '加点'], '无感': ['Forgettable', '響かない'],
+    '出戏': ['Breaks immersion', '没入できない'],
+  };
+  const tTag = (zh) => {
+    const p = TAG[zh];
+    if (!p) return zh;
+    return lang() === 'ja' ? p[1] : lang() === 'en' ? p[0] : zh;
+  };
   function syncPlaceholders() {
-    const en = isEn();
+    const l = lang();
     document.querySelectorAll('#view-notes [data-zh][data-en]').forEach((el) => {
-      el.placeholder = en ? el.dataset.en : el.dataset.zh;
+      el.placeholder = l === 'ja' ? (el.dataset.ja || el.dataset.en) : l === 'en' ? el.dataset.en : el.dataset.zh;
     });
   }
   const langBtn = document.getElementById('lang');

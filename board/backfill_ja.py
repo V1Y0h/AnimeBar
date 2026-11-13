@@ -12,7 +12,7 @@ for m in ab.fetch_movies():
 for m in ab.fetch_showings():
     rows.append(m["name"])
 
-todo = [o for o in dict.fromkeys(rows) if o and not jt._has_kana(o) and o not in jt._CACHE]
+todo = [o for o in dict.fromkeys(rows) if o and not jt._has_kana(o) and jt._CACHE.get(o) is not True and (o not in jt._CACHE or jt._CACHE[o] in (None, '', False))]
 print("待查", len(todo), flush=True)
 ok = 0
 for i, o in enumerate(todo, 1):
