@@ -194,7 +194,7 @@ def card(it):
         <h3 title="{esc(orig)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(ja_titles.lookup(orig))}</span></h3>
         <p class="meta">{L(DAYS[wd-1], EN_DAYS[wd-1]) if 1 <= wd <= 7 else '—'} · {esc(air)} · {total}{L(' 人评',' ratings')}</p>
         <div class="acts">
-          <a class="detail" href="{esc(url)}" data-bgm="{esc(url)}" data-title="{esc(name)}" target="_blank" rel="noopener">{L('详情','Details')}</a>
+          <a class="detail" href="{esc(url)}" data-bgm="{esc(url)}" data-title="{esc(name)}" data-en="{esc(en)}" data-ja="{esc(ja_titles.lookup(orig))}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(name)}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(name)}">{L('打点','Note')}</button>
           <button class="watch" data-name="{esc(name)}">{L('AniCh','Watch')}</button>
@@ -321,7 +321,7 @@ def movie_card(m):
         <h3 title="{esc(m['orig'])}"><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['orig'])[1])}</span><span class="l-ja">{esc(ja_titles.lookup(m['orig'] or m['name']))}</span></h3>
         <p class="meta">{L('上映','Released')} {esc(m['date']) or '—'} · {m['total']}{L(' 人评',' ratings')}</p>
         <div class="acts">
-          <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" target="_blank" rel="noopener">{L('详情','Details')}</a>
+          <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['orig'])[1])}" data-ja="{esc(ja_titles.lookup(m['orig'] or m['name']))}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
           <button class="watch" data-name="{esc(m['name'])}">{L('AniCh','Watch')}</button>
@@ -358,7 +358,7 @@ def showing_card(m):
         <h3><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['name'])[1])}</span><span class="l-ja">{esc(ja_titles.lookup(m['name']))}</span></h3>
         <p class="meta">{L(esc(m['date']) or '上映中', date_en(m['date']) if m['date'] else 'In cinemas')}{(' · ' + L('原','orig.') + ' ' + esc(m['original'])) if m.get('original') else ''}</p>
         <div class="acts">
-          <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
+          <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['name'])[1])}" data-ja="{esc(ja_titles.lookup(m['name']))}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
           <button class="watch" data-name="{esc(m['name'])}">{L('AniCh','Watch')}</button>
@@ -537,7 +537,13 @@ def main():
     const q = document.getElementById('q');
     if (q) q.placeholder = curLang === 'ja' ? q.dataset.ja : curLang === 'en' ? q.dataset.en : q.dataset.zh;
     document.querySelectorAll('a.detail[data-bgm]').forEach((a) => {{
-      a.href = curLang === 'zh' ? a.dataset.bgm : (curLang === 'ja' ? 'https://ja.wikipedia.org/w/index.php?search=' : 'https://en.wikipedia.org/w/index.php?search=') + encodeURIComponent(a.dataset.title);
+      if (curLang === 'zh') {{
+        a.href = a.dataset.bgm;
+      }} else if (curLang === 'ja') {{
+        a.href = 'https://ja.wikipedia.org/w/index.php?search=' + encodeURIComponent(a.dataset.ja || a.dataset.title);
+      }} else {{
+        a.href = 'https://myanimelist.net/anime.php?q=' + encodeURIComponent(a.dataset.en || a.dataset.title);
+      }}
     }});
   }}
   document.querySelectorAll('button[data-lang]').forEach((b) => {{
