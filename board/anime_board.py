@@ -8,6 +8,7 @@ import html
 import json
 
 from notes_tab import NOTES_HTML, NOTES_JS
+import scores
 import os
 import sys
 import re
@@ -163,10 +164,10 @@ def card(it):
     zh, en = titles(name, orig)
     q = urllib.parse.quote(name)
     return f"""
-    <article class="card {cls}" data-wd="{wd}" data-name="{esc(name)}{esc(orig)}" data-score="{score}" data-date="{esc(air)}">
+    <article class="card {cls}" data-wd="{wd}" data-name="{esc(name)}{esc(orig)}" data-score="{score}" data-pop="{total}" data-date="{esc(air)}">
       <a class="cover" href="{esc(url)}" target="_blank" rel="noopener">
         <img loading="lazy" src="{esc(img or GHOST)}" alt="{esc(name)}" onerror="this.onerror=null;this.src='{GHOST}'">
-        <span class="score">{score:.1f}</span>
+        {scores.badges(score, scores.alt(name, orig))}
       </a>
       <div class="body">
         <h3 title="{esc(orig)}">{L(zh, en)}</h3>
@@ -289,10 +290,10 @@ def movie_card(m):
     q = urllib.parse.quote(m["name"])
     cls = "hi" if m["score"] >= 8 else ("mid" if m["score"] >= 7 else "")
     return f"""
-    <article class="card {cls}" data-name="{esc(m['name'])}{esc(m['orig'])}" data-score="{m['score']}" data-date="{m['date']}">
+    <article class="card {cls}" data-name="{esc(m['name'])}{esc(m['orig'])}" data-score="{m['score']}" data-pop="{m['total']}" data-date="{m['date']}">
       <a class="cover" href="{esc(m['url'])}" target="_blank" rel="noopener">
         <img loading="lazy" src="{esc(m['img'] or GHOST)}" alt="{esc(m['name'])}" onerror="this.onerror=null;this.src='{GHOST}'">
-        <span class="score">{m['score']:.1f}</span>
+        {scores.badges(m['score'], scores.alt(m['name'], m['orig']))}
       </a>
       <div class="body">
         <h3 title="{esc(m['orig'])}">{L(*titles(m['name'], m['orig']))}</h3>
@@ -327,7 +328,7 @@ def showing_card(m):
     <article class="card showing {cls}" data-name="{esc(m['name'])}" data-score="{m['score']}">
       <a class="cover" href="{esc(m['url'])}" target="_blank" rel="noopener">
         <img loading="lazy" src="{esc(m['img'] or GHOST)}" alt="{esc(m['name'])}" onerror="this.onerror=null;this.src='{GHOST}'">
-        <span class="score">{badge}</span>
+        {scores.badges(m['score'], scores.alt(m['name'], m['name'])) if m['score'] else f'<span class="score">{badge}</span>'}
         {revival}
       </a>
       <div class="body">
@@ -403,6 +404,10 @@ def main():
   .card:hover {{ transform:translateY(-2px); border-color:var(--line2); }}
   .cover {{ position:relative; display:block; aspect-ratio:3/4; background:var(--surface2) url('assets/cover-placeholder.png') center/cover no-repeat; }}
   .cover img {{ width:100%; height:100%; object-fit:cover; display:block; }}
+  .scores {{ position:absolute; right:8px; top:8px; display:flex; gap:4px; }}
+  .scores .score {{ position:static; }}
+  .score.alt {{ color:#93c5fd; }}
+  .scores.score-hi .score {{ border:1px solid #78350f; }}
   .score {{ position:absolute; right:8px; top:8px; padding:3px 8px; border-radius:999px; font-family:"Fira Code",ui-monospace,monospace; font-size:11px; font-weight:600; background:rgba(2,6,23,.78); color:var(--dim); }}
   .card.hi .score {{ color:var(--accent); }}
   .revival {{ position:absolute; left:8px; top:8px; padding:2px 7px; border-radius:6px; font-size:10px; background:rgba(2,6,23,.8); color:var(--warn); border:1px solid #78350f; }}
@@ -452,7 +457,7 @@ def main():
       <button data-score="low">{L('&lt;7','<7')}</button>
     </span>
     <span id="sorts" class="sortgroup">
-      <button data-sort="score" class="on">{L('按评分','By score')}</button>
+      <button data-sort="pop" class="on">{L('按热度','Popular')}</button>
       <button data-sort="date">{L('按最新','Newest')}</button>
     </span>
     <button id="lang" type="button">EN</button>
@@ -506,7 +511,7 @@ def main():
       const kids = [...grid.children];
       kids.sort((a, b) => sortKey === 'date'
         ? (b.dataset.date || '').localeCompare(a.dataset.date || '')
-        : (parseFloat(b.dataset.score) || 0) - (parseFloat(a.dataset.score) || 0));
+        : (parseFloat(b.dataset.pop) || 0) - (parseFloat(a.dataset.pop) || 0));
       kids.forEach(k => grid.appendChild(k));
     }}
   }}
@@ -546,6 +551,7 @@ def main():
 </script>
 {NOTES_JS}
 </html>"""
+    scores.flush()
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(html)
     save_cache(_CACHE)
