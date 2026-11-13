@@ -44,7 +44,7 @@ static NSString *ResPath(NSString *name) {
     [b sendActionOn:(NSEventMaskLeftMouseUp | NSEventMaskRightMouseUp)];
 
     self.popover = [NSPopover new];
-    self.popover.behavior = NSPopoverBehaviorTransient;
+    self.popover.behavior = NSPopoverBehaviorApplicationDefined;
     self.popover.contentSize = NSMakeSize(1080, 720);
 
     NSViewController *vc = [NSViewController new];
@@ -73,7 +73,21 @@ static NSString *ResPath(NSString *name) {
     [self.popover showRelativeToRect:self.statusItem.button.bounds
                               ofView:self.statusItem.button
                        preferredEdge:NSRectEdgeMinY];
+    // 必须真正激活 App，输入法候选窗才会跟随显示
+    [[NSRunningApplication currentApplication]
+        activateWithOptions:NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps];
     [NSApp activateIgnoringOtherApps:YES];
+    for (NSNumber *delay in @[@0.0, @0.15, @0.4]) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay.doubleValue * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            NSWindow *w = self.web.window ?: self.popover.contentViewController.view.window;
+            if (w == nil) return;
+            [w setLevel:NSFloatingWindowLevel];
+            [w makeKeyAndOrderFront:nil];
+            [w makeFirstResponder:self.web];
+            [self.web.window makeFirstResponder:self.web];
+        });
+    }
 }
 
 - (NSString *)htmlPath {

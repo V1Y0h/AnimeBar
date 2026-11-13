@@ -6,6 +6,8 @@
 """
 import html
 import json
+
+from notes_tab import NOTES_HTML, NOTES_JS
 import os
 import sys
 import re
@@ -413,6 +415,25 @@ def main():
   .acts a:hover, .acts button:hover {{ background:var(--surface2); color:var(--txt); border-color:var(--line2); }}
   .acts .watch {{ color:var(--link); border-color:#1e3a5f; }}
   .acts .cp.done {{ color:var(--accent); border-color:var(--accent); }}
+  .notes-wrap {{ padding:20px; max-width:720px; margin:0 auto; }}
+  .notes-wrap label {{ display:block; font-size:11px; color:var(--dim); margin:10px 0 4px; }}
+  .notes-wrap input, .notes-wrap textarea {{ width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--txt); font:inherit; font-size:13px; padding:7px 10px; }}
+  .notes-wrap textarea {{ min-height:58px; resize:vertical; }}
+  .chips {{ display:flex; flex-wrap:wrap; gap:6px; }}
+  .chips button {{ font-size:12px; padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--dim); cursor:pointer; }}
+  .chips button.on {{ background:rgba(34,197,94,.16); border-color:#166534; color:var(--accent); }}
+  .nbar {{ display:flex; gap:8px; align-items:center; margin-top:12px; }}
+  .nbar .primary {{ background:var(--accent); border-color:var(--accent); color:#04140a; font-weight:600; }}
+  .nbar .ghost {{ background:transparent; }}
+  #n-count {{ font-size:11px; color:var(--dim); margin-left:auto; }}
+  #n-list {{ margin-top:16px; border-top:1px solid var(--line); }}
+  .note {{ padding:10px 2px; border-bottom:1px solid var(--line); }}
+  .note-head {{ display:flex; align-items:baseline; gap:8px; }}
+  .note-head b {{ font-size:13px; }}
+  .note-head .del {{ margin-left:auto; font-size:11px; border:1px solid var(--line); background:transparent; color:var(--dim); border-radius:6px; padding:2px 7px; cursor:pointer; }}
+  .note-tags {{ font-size:11px; color:var(--dim); margin-top:3px; }}
+  .note-ref {{ font-size:12px; margin-top:3px; opacity:.85; }}
+  .empty {{ font-size:12px; color:var(--dim); padding:16px 0; }}
 </style>
 <header>
   <h1>{L('本季新番','This season')} <small>{len(items)} {L('部','TV')} · {len(movies)} {L('部剧场版','films')} · {len(showings)} {L('部上映中','in cinemas')}</small></h1>
@@ -420,6 +441,7 @@ def main():
     <button data-mode="tv" class="on">{L('新番','TV')}</button>
     <button data-mode="movie">{L('剧场版','Films')}</button>
     <button data-mode="showing">{L('上映中','In cinemas')}</button>
+    <button data-mode="notes">{L('记录','Notes')}</button>
     <span class="sep"></span>
     <span id="filters" class="tools">
       <button data-wd="0" class="on">{L('全部','All')}</button>{tabs}
@@ -440,6 +462,7 @@ def main():
 <main class="grid" id="view-tv">{cards}</main>
 <main class="grid" id="view-movie" hidden>{movie_cards}</main>
 <main class="grid" id="view-showing" hidden>{showing_cards}</main>
+{NOTES_HTML}
 <script>
   let wd = 0, scoreFilter = 'all';
   const q = document.getElementById('q');
@@ -495,7 +518,7 @@ def main():
   document.querySelectorAll('button[data-mode]').forEach(b => b.onclick = () => {{
     const mode = b.dataset.mode;
     document.querySelectorAll('button[data-mode]').forEach(x => x.classList.toggle('on', x === b));
-    for (const id of ['tv', 'movie', 'showing']) {{
+    for (const id of ['tv', 'movie', 'showing', 'notes']) {{
       document.getElementById('view-' + id).hidden = (id !== mode);
     }}
     document.getElementById('filters').hidden = mode !== 'tv';
@@ -521,6 +544,7 @@ def main():
     setTimeout(() => {{ b.textContent = '复制'; b.classList.remove('done'); }}, 1200);
   }});
 </script>
+{NOTES_JS}
 </html>"""
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(html)
