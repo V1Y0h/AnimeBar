@@ -114,28 +114,23 @@ NOTES_JS = r"""
   };
 
   $('n-copy').onclick = () => {
-    const byTitle = {};
-    notes.forEach((n) => { (byTitle[n.title] = byTitle[n.title] || []).push(n); });
-    const H = T('# 制作人视角记录', "# Director's View", '# 制作者視点') + ' (' + notes.length + ')';
-    const out = [H, ''];
-    Object.keys(byTitle).forEach((t) => {
-      out.push('## ' + t, '');
-      byTitle[t].forEach((n) => {
-        const tags = n.tags || (n.phenomena || []).concat(n.speculations || []);
-        out.push('- ' + T('记录', 'Note', '記録'));
-        if (tags.length) out.push('  - ' + T('标签：', 'Tags: ', 'タグ：') + tags.map(tTag).join('、'));
-        const dims = n.dims || {};
-        const dimParts = ['art', 'staging', 'sound'].filter((k) => dims[k]).map((k) => {
-          const dl = DIM[k][lang() === 'ja' ? 2 : lang() === 'en' ? 1 : 0];
-          return dl + '·' + tTag(dims[k]);
-        });
-        if (dimParts.length) out.push('  - ' + T('维度：', 'Dimensions: ', '軸：') + dimParts.join('，'));
-        if (n.evidence) out.push('  - ' + T('依据：', 'Evidence: ', '根拠：') + n.evidence);
-        if (n.reflection) out.push('  - ' + T('如果是我：', 'If it were me: ', '自分なら：') + n.reflection);
+    const lines = [T('# 制作人视角记录', "# Director's View", '# 制作者視点') + ' (' + notes.length + ')', ''];
+    notes.forEach((n) => {
+      lines.push('## ' + (n.title || ''), '');
+      lines.push('- ' + T('记录', 'Note', '記録'));
+      const tags = n.tags || (n.phenomena || []).concat(n.speculations || []);
+      if (tags && tags.length) lines.push('  - ' + T('标签：', 'Tags: ', 'タグ：') + tags.map(tTag).join('、'));
+      const dims = n.dims || {};
+      const dimParts = ['art', 'staging', 'sound'].filter((k) => dims[k]).map((k) => {
+        const dl = DIM[k][lang() === 'ja' ? 2 : lang() === 'en' ? 1 : 0];
+        return dl + '·' + tTag(dims[k]);
       });
-      out.push('');
+      if (dimParts.length) lines.push('  - ' + T('维度：', 'Dimensions: ', '軸：') + dimParts.join('，'));
+      if (n.evidence) lines.push('  - ' + T('依据：', 'Evidence: ', '根拠：') + n.evidence);
+      if (n.reflection) lines.push('  - ' + T('如果是我：', 'If it were me: ', '自分なら：') + n.reflection);
+      lines.push('');
     });
-    const text = out.join('\n');
+    const text = lines.join('\n');
     const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.copy;
     if (h) {
       h.postMessage(text);
