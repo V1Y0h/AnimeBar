@@ -197,7 +197,7 @@ def card(it):
           <a class="detail" href="{esc(url)}" data-bgm="{esc(url)}" data-title="{esc(name)}" data-en="{esc(en)}" data-ja="{esc(ja_titles.lookup(orig))}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(name)}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(name)}">{L('打点','Note')}</button>
-          <button class="watch" data-name="{esc(name)}">{L('AniCh','Watch')}</button>
+          <button class="watch" data-name="{esc(name)}" data-en="{esc(en)}" data-ja="{esc(ja_titles.lookup(orig))}">{L('AniCh','Watch')}</button>
         </div>
       </div>
     </article>"""
@@ -324,7 +324,7 @@ def movie_card(m):
           <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['orig'])[1])}" data-ja="{esc(ja_titles.lookup(m['orig'] or m['name']))}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
-          <button class="watch" data-name="{esc(m['name'])}">{L('AniCh','Watch')}</button>
+          <button class="watch" data-name="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['orig'])[1])}" data-ja="{esc(ja_titles.lookup(m['orig'] or m['name']))}">{L('AniCh','Watch')}</button>
         </div>
       </div>
     </article>"""
@@ -361,7 +361,7 @@ def showing_card(m):
           <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['name'])[1])}" data-ja="{esc(ja_titles.lookup(m['name']))}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
           <button class="note" data-name="{esc(m['name'])}">{L('打点','Note')}</button>
-          <button class="watch" data-name="{esc(m['name'])}">{L('AniCh','Watch')}</button>
+          <button class="watch" data-name="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['orig'])[1])}" data-ja="{esc(ja_titles.lookup(m['orig'] or m['name']))}">{L('AniCh','Watch')}</button>
         </div>
       </div>
     </article>"""
@@ -596,8 +596,8 @@ def main():
       const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openurl;
       if (h) h.postMessage(u); else window.open(u, '_blank');
     }};
-    if (lang === 'en') {{ openUrl('https://www.crunchyroll.com/search?q=' + encodeURIComponent(n)); return; }}
-    if (lang === 'ja') {{ openUrl('https://animestore.docomo.ne.jp/animestore/search?q=' + encodeURIComponent(n)); return; }}
+    if (lang === 'en') {{ openUrl('https://www.justwatch.com/us/search?q=' + encodeURIComponent(b.dataset.en || n)); return; }}
+    if (lang === 'ja') {{ openUrl('https://www.justwatch.com/jp/search?q=' + encodeURIComponent(b.dataset.ja || n)); return; }}
     const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.anich;
     if (h) {{ h.postMessage(n); b.textContent = '已送出'; }}
     else {{ navigator.clipboard.writeText(n).catch(()=>{{}}); b.textContent = '已复制'; }}
