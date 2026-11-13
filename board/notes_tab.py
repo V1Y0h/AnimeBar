@@ -62,7 +62,13 @@ NOTES_JS = r"""
   const T = (zh, en, ja) => (lang() === 'ja' ? (ja || en) : lang() === 'en' ? en : zh);
   const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let notes = (() => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } })();
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(notes)); } catch (e) {} };
+  const save = () => {
+    try { localStorage.setItem(KEY, JSON.stringify(notes)); } catch (e) {}
+    try {
+      const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notesave;
+      if (h) h.postMessage(JSON.stringify(notes));
+    } catch (e) {}
+  };
 
   document.querySelectorAll('#view-notes .chips').forEach((box) => {
     box.addEventListener('click', (e) => {
@@ -182,6 +188,10 @@ NOTES_JS = r"""
   if (langBtn) langBtn.addEventListener('click', () => setTimeout(syncPlaceholders, 0));
   syncPlaceholders();
   document.addEventListener('animebar-lang', () => { syncPlaceholders(); render(); });
+  window.__initNotes = (data) => {
+    if (Array.isArray(data)) { notes = data; save(); render(); }
+  };
+
   render();
 })();
 </script>

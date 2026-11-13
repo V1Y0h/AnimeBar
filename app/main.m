@@ -14,7 +14,7 @@ static NSString *ResPath(NSString *name) {
     return [[NSFileManager defaultManager] fileExistsAtPath:p] ? p : nil;
 }
 
-@interface AppDelegate : NSObject <NSApplicationDelegate, WKScriptMessageHandler>
+@interface AppDelegate : NSObject <NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate>
 @property (strong) NSStatusItem *statusItem;
 @property (strong) NSPopover *popover;
 @property (strong) WKWebView *web;
@@ -52,7 +52,9 @@ static NSString *ResPath(NSString *name) {
     [cfg.userContentController addScriptMessageHandler:self name:@"anich"];
     [cfg.userContentController addScriptMessageHandler:self name:@"openurl"];
     [cfg.userContentController addScriptMessageHandler:self name:@"copy"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"notesave"];
     self.web = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720) configuration:cfg];
+    self.web.navigationDelegate = self;
     vc.view = self.web;
     self.popover.contentViewController = vc;
 }
@@ -90,6 +92,15 @@ static NSString *ResPath(NSString *name) {
             [self.web.window makeFirstResponder:self.web];
         });
     }
+}
+
+
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"notes.json"];
+    NSString *json = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+    if (json.length == 0) return;
+    NSString *js = [NSString stringWithFormat:@"window.__initNotes && window.__initNotes(%@)", json];
+    [webView evaluateJavaScript:js completionHandler:nil];
 }
 
 - (NSString *)htmlPath {
@@ -153,6 +164,14 @@ static NSString *ResPath(NSString *name) {
 - (void)doRefresh { [self load]; }
 
 - (void)userContentController:(WKUserContentController *)ucc didReceiveScriptMessage:(WKScriptMessage *)msg {
+    if ([msg.name isEqualToString:@"notesave"]) {
+        NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
+        if (t.length) {
+            NSString *path = [SupportDir() stringByAppendingPathComponent:@"notes.json"];
+            [t writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        }
+        return;
+    }
     if ([msg.name isEqualToString:@"copy"]) {
         NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
         if (t.length) {
