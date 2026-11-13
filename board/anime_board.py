@@ -154,7 +154,7 @@ JA = {
     "作画": "作画", "演出": "演出", "声音": "音響",
     "如果是我": "自分なら", "保存": "保存", "复制 Markdown": "Markdown をコピー",
     "条记录": " 件", "还没有记录": "まだ記録なし", "删除": "削除", "如果是我：": "自分なら：",
-    "上映": "公開", "人评": " 人評価",
+    "上映": "公開", "人评": " 人評価", "原": "原作", "リバイバル": "リバイバル", "人評価": "人評価",
     "静止画多": "静止画が多い", "精度落差": "精度の落差", "画风突变": "絵柄の変化",
     "重复镜头": "繰り返しカット", "演出神回": "神回の演出", "评分分歧": "評価の乖離",
     "疑似外包": "外注の可能性", "工期紧张": "工期逼迫", "作监尽力": "作監の踏ん張り", "资方干预": "出資者の介入",
@@ -476,11 +476,6 @@ def main():
     <span class="sep"></span>
     <span id="filters" class="tools">
       <button data-wd="0" class="on">{L('全部','All')}</button>{tabs}
-      <span class="sep"></span>
-      <button data-score="all" class="on">{L('评分不限','Any score')}</button>
-      <button data-score="8">≥8</button>
-      <button data-score="7">{L('7–8','7–8')}</button>
-      <button data-score="low">{L('&lt;7','<7')}</button>
     </span>
     <span id="sorts" class="sortgroup">
       <button data-sort="pop" class="on">{L('按热度','Popular')}</button>
@@ -513,7 +508,6 @@ def main():
     cards.forEach(c => {{
       const okWd = wd === 0 || +c.dataset.wd === wd;
       const okKw = !kw || c.dataset.name.toLowerCase().includes(kw);
-      const okScore = inScore(parseFloat(c.dataset.score) || 0);
       c.style.display = okWd && okKw && okScore ? '' : 'none';
     }});
   }}
@@ -587,13 +581,22 @@ def main():
 </script>
 {NOTES_JS}
 </html>"""
+    def _ja_of(zh, en):
+        key = zh.strip()
+        if key in JA:
+            return JA[key]
+        if any('\u3040' <= ch <= '\u30ff' for ch in key):  # 含假名，本身是日文
+            return zh
+        if '月' in key and '日' in key:  # 日期，保持原文
+            return zh
+        return en
     import re as _re
     html = _re.sub(
-        r'<span class="l-zh">([^<]*)</span><span class="l-en">([^<]*)</span>',
+        r'<span class="l-zh">([^<]*)</span><span class="l-en">([^<]*)</span>(?!<span class="l-ja">)',
         lambda m: (
             f'<span class="l-zh">{m.group(1)}</span>'
             f'<span class="l-en">{m.group(2)}</span>'
-            f'<span class="l-ja">{JA.get(m.group(1), m.group(2))}</span>'
+            f'<span class="l-ja">{_ja_of(m.group(1), m.group(2))}</span>'
         ),
         html,
     )
