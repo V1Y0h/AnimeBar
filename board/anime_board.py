@@ -188,7 +188,7 @@ def card(it):
     <article class="card {cls}" data-wd="{wd}" data-name="{esc(name)}{esc(orig)}" data-score="{score}" data-pop="{total}" data-date="{esc(air)}">
       <a class="cover" href="{esc(url)}" target="_blank" rel="noopener">
         <img loading="lazy" src="{esc(img or GHOST)}" alt="{esc(name)}" onerror="this.onerror=null;this.src='{GHOST}'">
-        {scores.badges(score, scores.alt(name, orig))}
+        {scores.badges(score, scores.alt(name, orig), scores.kitsu_alt(name, orig))}
       </a>
       <div class="body">
         <h3 title="{esc(orig)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(ja_titles.lookup(orig))}</span></h3>
@@ -315,7 +315,7 @@ def movie_card(m):
     <article class="card {cls}" data-name="{esc(m['name'])}{esc(m['orig'])}" data-score="{m['score']}" data-pop="{m['total']}" data-date="{m['date']}">
       <a class="cover" href="{esc(m['url'])}" target="_blank" rel="noopener">
         <img loading="lazy" src="{esc(m['img'] or GHOST)}" alt="{esc(m['name'])}" onerror="this.onerror=null;this.src='{GHOST}'">
-        {scores.badges(m['score'], scores.alt(m['name'], m['orig']))}
+        {scores.badges(m['score'], scores.alt(m['name'], m['orig']), scores.kitsu_alt(m['name'], m['orig']))}
       </a>
       <div class="body">
         <h3 title="{esc(m['orig'])}"><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['orig'])[1])}</span><span class="l-ja">{esc(ja_titles.lookup(m['orig'] or m['name']))}</span></h3>
@@ -351,7 +351,7 @@ def showing_card(m):
     <article class="card showing {cls}" data-name="{esc(m['name'])}" data-score="{m['score']}">
       <a class="cover" href="{esc(m['url'])}" target="_blank" rel="noopener">
         <img loading="lazy" src="{esc(m['img'] or GHOST)}" alt="{esc(m['name'])}" onerror="this.onerror=null;this.src='{GHOST}'">
-        {scores.badges(m['score'], scores.alt(m['name'], m['name'])) if m['score'] else f'<span class="score">{badge}</span>'}
+        {scores.badges(m['score'], scores.alt(m['name'], m['name']), scores.kitsu_alt(m['name'], m['name'])) if m['score'] else f'<span class="score">{badge}</span>'}
         {revival}
       </a>
       <div class="body">
@@ -436,7 +436,8 @@ def main():
   .cover img {{ width:100%; height:100%; object-fit:cover; display:block; }}
   .scores {{ position:absolute; right:8px; top:8px; display:flex; gap:4px; }}
   .scores .score {{ position:static; }}
-  .score.alt {{ color:#93c5fd; }}
+  .score.AniList {{ color:#93c5fd; }}
+  .score.Kitsu {{ color:#f472b6; }}
   .scores.score-hi .score {{ border:1px solid #78350f; }}
   .score {{ position:absolute; right:8px; top:8px; padding:3px 8px; border-radius:999px; font-family:"Fira Code",ui-monospace,monospace; font-size:11px; font-weight:600; background:rgba(2,6,23,.78); color:var(--dim); }}
   .card.hi .score {{ color:var(--accent); }}
