@@ -110,7 +110,7 @@ NOTES_JS = r"""
   $('n-copy').onclick = () => {
     const byTitle = {};
     notes.forEach((n) => { (byTitle[n.title] = byTitle[n.title] || []).push(n); });
-    const H = T('# 制作人视角记录', "# Director's View", '# 制作者視点');
+    const H = T('# 制作人视角记录', "# Director's View", '# 制作者視点') + ' (' + notes.length + ')';
     const out = [H, ''];
     Object.keys(byTitle).forEach((t) => {
       out.push('## ' + t, '');
