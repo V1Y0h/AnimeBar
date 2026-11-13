@@ -422,7 +422,9 @@ def main():
   body.ja .l-zh {{ display:none; }}
   body.ja .l-en {{ display:none; }}
   body.ja .l-ja {{ display:inline; }}
-  #lang {{ margin-left:auto; }}
+  .langs {{ margin-left:auto; display:inline-flex; gap:4px; }}
+  .langs button {{ font-size:11px; padding:3px 9px; border-radius:7px; border:1px solid var(--line); background:transparent; color:var(--dim); cursor:pointer; }}
+  .langs button.on {{ background:var(--accent); border-color:var(--accent); color:#04140a; font-weight:600; }}
   .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:16px; padding:20px; }}
   .card {{ background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .14s ease,border-color .14s ease; }}
   .card:hover {{ transform:translateY(-2px); border-color:var(--line2); }}
@@ -484,7 +486,11 @@ def main():
       <button data-sort="pop" class="on">{L('按热度','Popular')}</button>
       <button data-sort="date">{L('按最新','Newest')}</button>
     </span>
-    <button id="lang" type="button">EN</button>
+    <span class="langs">
+    <button data-lang="zh">中文</button>
+    <button data-lang="en">EN</button>
+    <button data-lang="ja">日本語</button>
+    </span>
     <input id="q" placeholder="搜名字… / Search title…">
   </div>
 </header>
@@ -516,25 +522,25 @@ def main():
     document.querySelectorAll('button[data-wd]').forEach(x => x.classList.toggle('on', x === b));
     apply();
   }});
-  const langBtn = document.getElementById('lang');
   const LANGS = ['zh', 'en', 'ja'];
-  const NEXT_LABEL = {{ zh: 'EN', en: '日本語', ja: '中文' }};
   let curLang = localStorage.getItem('animebar-lang') || 'zh';
   function applyLang(lang) {{
+    curLang = LANGS.includes(lang) ? lang : 'zh';
     document.body.classList.remove('en', 'ja');
-    if (lang === 'en') document.body.classList.add('en');
-    if (lang === 'ja') document.body.classList.add('ja');
-    langBtn.textContent = NEXT_LABEL[lang];
+    if (curLang === 'en') document.body.classList.add('en');
+    if (curLang === 'ja') document.body.classList.add('ja');
+    document.querySelectorAll('button[data-lang]').forEach((b) => {{
+      b.classList.toggle('on', b.dataset.lang === curLang);
+    }});
     document.dispatchEvent(new CustomEvent('animebar-lang'));
-  }}
-  applyLang(LANGS.includes(curLang) ? curLang : 'zh');
-  langBtn.onclick = () => {{
-    curLang = LANGS[(LANGS.indexOf(curLang) + 1) % 3];
-    applyLang(curLang);
     localStorage.setItem('animebar-lang', curLang);
-  }};
+  }}
+  document.querySelectorAll('button[data-lang]').forEach((b) => {{
+    b.onclick = () => applyLang(b.dataset.lang);
+  }});
+  applyLang(curLang);
 
-  let sortKey = 'score';
+  let sortKey = 'pop';
   function reorder() {{
     for (const id of ['view-tv', 'view-movie']) {{
       const grid = document.getElementById(id);

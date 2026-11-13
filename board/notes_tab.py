@@ -23,16 +23,19 @@ NOTES_HTML = """
     </div>
     <input id="n-evidence" data-zh="依据" data-en="Evidence" placeholder="依据">
     <label><span class="l-zh">维度</span><span class="l-en">Dimensions</span></label>
+    <label><span class="l-zh">作画</span><span class="l-en">sakuga</span><span class="l-ja">作画</span></label>
     <div class="chips" data-dim="art">
       <button type="button" data-tag="值得学习"><span class="l-zh">值得学习</span><span class="l-en">Worth studying</span></button>
       <button type="button" data-tag="中规中矩"><span class="l-zh">中规中矩</span><span class="l-en">By the book</span></button>
       <button type="button" data-tag="有待提高"><span class="l-zh">有待提高</span><span class="l-en">Needs work</span></button>
     </div>
+    <label><span class="l-zh">演出</span><span class="l-en">direction</span><span class="l-ja">演出</span></label>
     <div class="chips" data-dim="staging">
       <button type="button" data-tag="有巧思"><span class="l-zh">有巧思</span><span class="l-en">Clever</span></button>
       <button type="button" data-tag="平淡"><span class="l-zh">平淡</span><span class="l-en">Flat</span></button>
       <button type="button" data-tag="用力过猛"><span class="l-zh">用力过猛</span><span class="l-en">Overwrought</span></button>
     </div>
+    <label><span class="l-zh">声音</span><span class="l-en">sound</span><span class="l-ja">音響</span></label>
     <div class="chips" data-dim="sound">
       <button type="button" data-tag="加分项"><span class="l-zh">加分项</span><span class="l-en">Adds value</span></button>
       <button type="button" data-tag="无感"><span class="l-zh">无感</span><span class="l-en">Forgettable</span></button>
@@ -55,8 +58,8 @@ NOTES_JS = r"""
 (function () {
   const KEY = 'animebar.notes.v1';
   const $ = (id) => document.getElementById(id);
-  const isEn = () => document.body.classList.contains('en');
-  const T = (zh, en) => (isEn() ? en : zh);
+  const lang = () => (document.body.classList.contains('ja') ? 'ja' : document.body.classList.contains('en') ? 'en' : 'zh');
+  const T = (zh, en, ja) => (lang() === 'ja' ? (ja || en) : lang() === 'en' ? en : zh);
   const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let notes = (() => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } })();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(notes)); } catch (e) {} };
@@ -143,6 +146,7 @@ NOTES_JS = r"""
   const langBtn = document.getElementById('lang');
   if (langBtn) langBtn.addEventListener('click', () => setTimeout(syncPlaceholders, 0));
   syncPlaceholders();
+  document.addEventListener('animebar-lang', () => { syncPlaceholders(); render(); });
   render();
 })();
 </script>
