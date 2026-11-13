@@ -76,13 +76,13 @@ NOTES_JS = r"""
   });
 
   function render() {
-    $('n-count').textContent = notes.length + T(' 条记录', ' notes');
+    $('n-count').textContent = notes.length + T(' 条记录', ' notes', ' 件');
     const list = $('n-list');
-    if (!notes.length) { list.innerHTML = '<p class="empty">' + T('还没有记录', 'No notes yet') + '</p>'; return; }
+    if (!notes.length) { list.innerHTML = '<p class="empty">' + T('还没有记录', 'No notes yet', 'まだ記録なし') + '</p>'; return; }
     list.innerHTML = notes.map((n) => '<div class="note"><div class="note-head"><b>' + esc(n.title) + '</b>'
-      + '<button class="del" data-id="' + n.id + '">' + T('删除', 'Delete') + '</button></div>'
+      + '<button class="del" data-id="' + n.id + '">' + T('删除', 'Delete', '削除') + '</button></div>'
       + (n.tags.length ? '<div class="note-tags">' + esc(n.tags.map(tTag).join(' · ')) + '</div>' : '')
-      + (n.reflection ? '<div class="note-ref">' + T('如果是我：', 'If it were me: ') + esc(n.reflection) + '</div>' : '')
+      + (n.reflection ? '<div class="note-ref">' + T('如果是我：', 'If it were me: ', '自分なら：') + esc(n.reflection) + '</div>' : '')
       + '</div>').join('');
     list.querySelectorAll('.del').forEach((b) => {
       b.onclick = () => { notes = notes.filter((x) => x.id !== b.dataset.id); save(); render(); };
