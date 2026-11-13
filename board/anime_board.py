@@ -144,6 +144,26 @@ def esc(s):
 
 GHOST = "assets/cover-placeholder.png"
 
+JA = {
+    "本季新番": "今期の新作", "部": "作品", "部剧场版": "劇場版", "部上映中": "上映中",
+    "新番": "新作", "剧场版": "劇場版", "上映中": "上映中", "记录": "記録",
+    "全部": "全て", "周一": "月", "周二": "火", "周三": "水", "周四": "木", "周五": "金", "周六": "土", "周日": "日",
+    "按热度": "人気順", "按最新": "新着順",
+    "详情": "詳細", "复制": "コピー", "打点": "記録する",
+    "作品名": "作品名", "现象": "兆候", "推测": "推測", "维度": "軸",
+    "作画": "作画", "演出": "演出", "声音": "音響",
+    "如果是我": "自分なら", "保存": "保存", "复制 Markdown": "Markdown をコピー",
+    "条记录": " 件", "还没有记录": "まだ記録なし", "删除": "削除", "如果是我：": "自分なら：",
+    "上映": "公開", "人评": " 人評価",
+    "静止画多": "静止画が多い", "精度落差": "精度の落差", "画风突变": "絵柄の変化",
+    "重复镜头": "繰り返しカット", "演出神回": "神回の演出", "评分分歧": "評価の乖離",
+    "疑似外包": "外注の可能性", "工期紧张": "工期逼迫", "作监尽力": "作監の踏ん張り", "资方干预": "出資者の介入",
+    "值得学习": "参考になる", "中规中矩": "可もなく不可もなく", "有待提高": "要改善",
+    "有巧思": "工夫がある", "平淡": "平凡", "用力过猛": "やりすぎ",
+    "加分项": "加点", "无感": "響かない", "出戏": "没入できない",
+}
+
+
 def L(zh, en):
     return f'<span class="l-zh">{zh}</span><span class="l-en">{en}</span>'
 
@@ -170,7 +190,7 @@ def card(it):
         {scores.badges(score, scores.alt(name, orig))}
       </a>
       <div class="body">
-        <h3 title="{esc(orig)}">{L(zh, en)}</h3>
+        <h3 title="{esc(orig)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(orig)}</span></h3>
         <p class="meta">{L(DAYS[wd-1], EN_DAYS[wd-1]) if 1 <= wd <= 7 else '—'} · {esc(air)} · {total}{L(' 人评',' ratings')}</p>
         <div class="acts">
           <a href="{esc(url)}" target="_blank" rel="noopener">{L('详情','Details')}</a>
@@ -296,7 +316,7 @@ def movie_card(m):
         {scores.badges(m['score'], scores.alt(m['name'], m['orig']))}
       </a>
       <div class="body">
-        <h3 title="{esc(m['orig'])}">{L(*titles(m['name'], m['orig']))}</h3>
+        <h3 title="{esc(m['orig'])}"><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['orig'])[1])}</span><span class="l-ja">{esc(m['orig'] or m['name'])}</span></h3>
         <p class="meta">{L('上映','Released')} {esc(m['date']) or '—'} · {m['total']}{L(' 人评',' ratings')}</p>
         <div class="acts">
           <a href="{esc(m['url'])}" target="_blank" rel="noopener">{L('详情','Details')}</a>
@@ -332,7 +352,7 @@ def showing_card(m):
         {revival}
       </a>
       <div class="body">
-        <h3>{L(*titles(m['name'], m['name']))}</h3>
+        <h3><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['name'])[1])}</span><span class="l-ja">{esc(m['name'])}</span></h3>
         <p class="meta">{L(esc(m['date']) or '上映中', date_en(m['date']) if m['date'] else 'In cinemas')}{(' · ' + L('原','orig.') + ' ' + esc(m['original'])) if m.get('original') else ''}</p>
         <div class="acts">
           <a href="{esc(m['url'])}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
@@ -396,8 +416,12 @@ def main():
   :focus-visible {{ outline:2px solid var(--accent); outline-offset:2px; }}
   [hidden] {{ display:none !important; }}
   .l-en {{ display:none; }}
+  .l-ja {{ display:none; }}
   body.en .l-zh {{ display:none; }}
   body.en .l-en {{ display:inline; }}
+  body.ja .l-zh {{ display:none; }}
+  body.ja .l-en {{ display:none; }}
+  body.ja .l-ja {{ display:inline; }}
   #lang {{ margin-left:auto; }}
   .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:16px; padding:20px; }}
   .card {{ background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .14s ease,border-color .14s ease; }}
@@ -493,15 +517,21 @@ def main():
     apply();
   }});
   const langBtn = document.getElementById('lang');
-  function applyLang(en) {{
-    document.body.classList.toggle('en', en);
-    langBtn.textContent = en ? '中文' : 'EN';
+  const LANGS = ['zh', 'en', 'ja'];
+  const NEXT_LABEL = {{ zh: 'EN', en: '日本語', ja: '中文' }};
+  let curLang = localStorage.getItem('animebar-lang') || 'zh';
+  function applyLang(lang) {{
+    document.body.classList.remove('en', 'ja');
+    if (lang === 'en') document.body.classList.add('en');
+    if (lang === 'ja') document.body.classList.add('ja');
+    langBtn.textContent = NEXT_LABEL[lang];
+    document.dispatchEvent(new CustomEvent('animebar-lang'));
   }}
-  applyLang(localStorage.getItem('animebar-lang') === 'en');
+  applyLang(LANGS.includes(curLang) ? curLang : 'zh');
   langBtn.onclick = () => {{
-    const en = !document.body.classList.contains('en');
-    applyLang(en);
-    localStorage.setItem('animebar-lang', en ? 'en' : 'zh');
+    curLang = LANGS[(LANGS.indexOf(curLang) + 1) % 3];
+    applyLang(curLang);
+    localStorage.setItem('animebar-lang', curLang);
   }};
 
   let sortKey = 'score';
@@ -551,6 +581,16 @@ def main():
 </script>
 {NOTES_JS}
 </html>"""
+    import re as _re
+    html = _re.sub(
+        r'<span class="l-zh">([^<]*)</span><span class="l-en">([^<]*)</span>',
+        lambda m: (
+            f'<span class="l-zh">{m.group(1)}</span>'
+            f'<span class="l-en">{m.group(2)}</span>'
+            f'<span class="l-ja">{JA.get(m.group(1), m.group(2))}</span>'
+        ),
+        html,
+    )
     scores.flush()
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(html)
