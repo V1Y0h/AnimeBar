@@ -9,6 +9,7 @@ import json
 
 from notes_tab import NOTES_HTML, NOTES_JS
 import scores
+import ja_titles
 import os
 import sys
 import re
@@ -190,7 +191,7 @@ def card(it):
         {scores.badges(score, scores.alt(name, orig))}
       </a>
       <div class="body">
-        <h3 title="{esc(orig)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(orig)}</span></h3>
+        <h3 title="{esc(orig)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(ja_titles.lookup(orig))}</span></h3>
         <p class="meta">{L(DAYS[wd-1], EN_DAYS[wd-1]) if 1 <= wd <= 7 else '—'} · {esc(air)} · {total}{L(' 人评',' ratings')}</p>
         <div class="acts">
           <a href="{esc(url)}" target="_blank" rel="noopener">{L('详情','Details')}</a>
@@ -316,7 +317,7 @@ def movie_card(m):
         {scores.badges(m['score'], scores.alt(m['name'], m['orig']))}
       </a>
       <div class="body">
-        <h3 title="{esc(m['orig'])}"><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['orig'])[1])}</span><span class="l-ja">{esc(m['orig'] or m['name'])}</span></h3>
+        <h3 title="{esc(m['orig'])}"><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['orig'])[1])}</span><span class="l-ja">{esc(ja_titles.lookup(m['orig'] or m['name']))}</span></h3>
         <p class="meta">{L('上映','Released')} {esc(m['date']) or '—'} · {m['total']}{L(' 人评',' ratings')}</p>
         <div class="acts">
           <a href="{esc(m['url'])}" target="_blank" rel="noopener">{L('详情','Details')}</a>
@@ -352,7 +353,7 @@ def showing_card(m):
         {revival}
       </a>
       <div class="body">
-        <h3><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['name'])[1])}</span><span class="l-ja">{esc(m['name'])}</span></h3>
+        <h3><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['name'])[1])}</span><span class="l-ja">{esc(ja_titles.lookup(m['name']))}</span></h3>
         <p class="meta">{L(esc(m['date']) or '上映中', date_en(m['date']) if m['date'] else 'In cinemas')}{(' · ' + L('原','orig.') + ' ' + esc(m['original'])) if m.get('original') else ''}</p>
         <div class="acts">
           <a href="{esc(m['url'])}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
@@ -601,6 +602,7 @@ def main():
         html,
     )
     scores.flush()
+    ja_titles.flush()
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(html)
     save_cache(_CACHE)
