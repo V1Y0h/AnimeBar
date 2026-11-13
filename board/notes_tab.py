@@ -106,14 +106,16 @@ NOTES_JS = r"""
   $('n-copy').onclick = () => {
     const byTitle = {};
     notes.forEach((n) => { (byTitle[n.title] = byTitle[n.title] || []).push(n); });
-    const out = ['# 制作人视角记录', ''];
+    const H = T('# 制作人视角记录', '# Producer Lens', '# 制作者視点');
+    const out = [H, ''];
     Object.keys(byTitle).forEach((t) => {
       out.push('## ' + t, '');
       byTitle[t].forEach((n) => {
-        out.push('- 记录');
-        if (n.tags.length) out.push('  - 标签：' + n.tags.join('、'));
-        if (n.evidence) out.push('  - 依据：' + n.evidence);
-        if (n.reflection) out.push('  - 如果是我：' + n.reflection);
+        const tags = n.tags || (n.phenomena || []).concat(n.speculations || []);
+        out.push('- ' + T('记录', 'Note', '記録'));
+        if (tags.length) out.push('  - ' + T('标签：', 'Tags: ', 'タグ：') + tags.map(tTag).join('、'));
+        if (n.evidence) out.push('  - ' + T('依据：', 'Evidence: ', '根拠：') + n.evidence);
+        if (n.reflection) out.push('  - ' + T('如果是我：', 'If it were me: ', '自分なら：') + n.reflection);
       });
       out.push('');
     });
@@ -122,8 +124,8 @@ NOTES_JS = r"""
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(ta);
-    $('n-copy').querySelectorAll('span').forEach((s) => { s.textContent = T('已复制', 'Copied'); });
-    setTimeout(() => { $('n-copy').querySelectorAll('span').forEach((s) => { s.textContent = s.className === 'l-en' ? 'Copy Markdown' : '复制 Markdown'; }); }, 1500);
+    $('n-copy').querySelectorAll('span').forEach((s) => { s.textContent = T('已复制', 'Copied', 'コピーしました'); });
+    setTimeout(() => { $('n-copy').querySelectorAll('span').forEach((s) => { s.textContent = T('复制 Markdown', 'Copy Markdown', 'Markdown をコピー'); }); }, 1500);
   };
 
   document.addEventListener('click', (e) => {
