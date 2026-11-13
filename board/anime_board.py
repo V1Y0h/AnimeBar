@@ -564,7 +564,10 @@ def main():
   }}
   document.querySelectorAll('a.detail').forEach(a => a.addEventListener('click', (e) => {{
     e.preventDefault();
-    const u = a.href;
+    const langNow = document.body.classList.contains('ja') ? 'ja' : document.body.classList.contains('en') ? 'en' : 'zh';
+    let u = a.dataset.bgm;
+    if (langNow === 'en') u = 'https://myanimelist.net/anime.php?q=' + encodeURIComponent(a.dataset.en || a.dataset.title);
+    else if (langNow === 'ja') u = 'https://www.google.com/search?q=' + encodeURIComponent((a.dataset.ja || a.dataset.title) + ' アニメ');
     const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openurl;
     if (h) {{ h.postMessage(u); }} else {{ window.open(u, '_blank'); }}
   }}));
@@ -591,13 +594,13 @@ def main():
   q.oninput = apply;
   document.querySelectorAll('.watch').forEach(b => b.onclick = () => {{
     const n = b.dataset.name;
-    const lang = document.body.classList.contains('ja') ? 'ja' : document.body.classList.contains('en') ? 'en' : 'zh';
+    const langNow = document.body.classList.contains('ja') ? 'ja' : document.body.classList.contains('en') ? 'en' : 'zh';
     const openUrl = (u) => {{
       const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openurl;
       if (h) h.postMessage(u); else window.open(u, '_blank');
     }};
-    if (lang === 'en') {{ openUrl('https://www.justwatch.com/us/search?q=' + encodeURIComponent(b.dataset.en || n)); return; }}
-    if (lang === 'ja') {{ openUrl('https://www.justwatch.com/jp/search?q=' + encodeURIComponent(b.dataset.ja || n)); return; }}
+    if (langNow === 'en') {{ openUrl('https://www.justwatch.com/us/search?q=' + encodeURIComponent(b.dataset.en || n)); return; }}
+    if (langNow === 'ja') {{ openUrl('https://www.justwatch.com/jp/search?q=' + encodeURIComponent(b.dataset.ja || n)); return; }}
     const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.anich;
     if (h) {{ h.postMessage(n); b.textContent = '已送出'; }}
     else {{ navigator.clipboard.writeText(n).catch(()=>{{}}); b.textContent = '已复制'; }}
