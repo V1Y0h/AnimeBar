@@ -540,7 +540,7 @@ def main():
       if (curLang === 'zh') {{
         a.href = a.dataset.bgm;
       }} else if (curLang === 'ja') {{
-        a.href = 'https://ja.wikipedia.org/w/index.php?search=' + encodeURIComponent(a.dataset.ja || a.dataset.title);
+        a.href = 'https://www.google.com/search?q=' + encodeURIComponent((a.dataset.ja || a.dataset.title) + ' アニメ');
       }} else {{
         a.href = 'https://myanimelist.net/anime.php?q=' + encodeURIComponent(a.dataset.en || a.dataset.title);
       }}
