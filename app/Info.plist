@@ -11,5 +11,16 @@
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
   <key>LSMinimumSystemVersion</key><string>12.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>local.animebar.link</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>animebar</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

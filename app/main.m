@@ -182,6 +182,29 @@ static NSString *ResPath(NSString *name) {
     };
 }
 
+
+- (void)application:(NSApplication *)app openURLs:(NSArray<NSURL *> *)urls {
+    // animebar://anich?title=xxx —— 复制标题并唤起 AniCh
+    for (NSURL *u in urls) {
+        if (![[u scheme] isEqualToString:@"animebar"]) continue;
+        NSString *title = nil;
+        for (NSString *pair in [[u query] componentsSeparatedByString:@"&"]) {
+            NSRange eq = [pair rangeOfString:@"="];
+            if (eq.location == NSNotFound) continue;
+            NSString *key = [pair substringToIndex:eq.location];
+            if (![key isEqualToString:@"title"]) continue;
+            NSString *raw = [pair substringFromIndex:eq.location + 1];
+            title = [raw stringByRemovingPercentEncoding];
+        }
+        if (title.length > 0) {
+            NSPasteboard *pb = [NSPasteboard generalPasteboard];
+            [pb clearContents];
+            [pb setString:title forType:NSPasteboardTypeString];
+        }
+        [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:@"/Applications/anich.app"]];
+    }
+}
+
 - (void)doQuit { [NSApp terminate:nil]; }
 
 @end
