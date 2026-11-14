@@ -343,7 +343,10 @@ static NSString *NewNoteID(void) {
     if (q[@"ep"] != nil) rec[@"episode"] = @([q[@"ep"] integerValue]);
     if (q[@"t"] != nil) {
         // 取到毫秒，避免 123.40000000000001 这种浮点尾巴
-        rec[@"t_start"] = @(round([q[@"t"] doubleValue] * 1000.0) / 1000.0);
+        // 用 NSDecimalNumber 而不是 double：后者会被 JSON 序列化成
+        // 3.7919999999999998 这种尾巴，直接写进数据文件很难看
+        rec[@"t_start"] = [NSDecimalNumber decimalNumberWithString:
+            [NSString stringWithFormat:@"%.3f", [q[@"t"] doubleValue]]];
     }
     if (q[@"bangumi"] != nil) rec[@"bangumi_id"] = @([q[@"bangumi"] integerValue]);
     rec[@"phenomena"] = @[];
