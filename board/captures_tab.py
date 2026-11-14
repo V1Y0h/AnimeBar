@@ -236,6 +236,7 @@ CAPTURES_JS = r"""
       '<div class="chips" data-field="phenomena">' + chipRow('phenomenon', ph, 'slug') + '</div>' +
       '<div class="cap-label">' + T('推测', 'Speculation', '推測') + '</div>' +
       '<div class="chips" data-field="speculations">' + chipRow('speculation', sp, 'slug') + '</div>' +
+      dimsBlock((tr && tr.dims) || {}) +
       '<div class="cap-label">' + T('如果是我', 'What I would do', '自分なら') + '</div>' +
       '<textarea class="cap-take">' + esc((tr && tr.my_take) || '') + '</textarea>' +
       '<div class="cap-actions"><button type="button" class="cap-save">' + T('保存复盘', 'Save triage', '保存') + '</button>' +
@@ -341,12 +342,18 @@ CAPTURES_JS = r"""
           dims: dims,
         }));
       } else {
+        const dims = {};
+        card.querySelectorAll('.chips[data-dim]').forEach((box) => {
+          const on = box.querySelector('button.on');
+          if (on) dims[box.dataset.dim] = on.dataset.dimValue;
+        });
         send('triagesave', JSON.stringify({
           note_id: id,
           episode: Number(card.querySelector('.cap-epi').value) || undefined,
           phenomena: pick('phenomena'),
           speculations: pick('speculations').map((tag) => ({ tag })),
           my_take: card.querySelector('.cap-take').value,
+          dims: dims,
         }));
       }
       const b = card.querySelector('.cap-save');
