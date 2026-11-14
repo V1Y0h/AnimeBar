@@ -83,6 +83,7 @@ static NSString *NewNoteID(void) {
     [cfg.userContentController addScriptMessageHandler:self name:@"noteadd"];
     [cfg.userContentController addScriptMessageHandler:self name:@"noteupdate"];
     [cfg.userContentController addScriptMessageHandler:self name:@"notedelete"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"jsError"];
     self.web = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720) configuration:cfg];
     self.web.navigationDelegate = self;
     vc.view = self.web;
@@ -199,6 +200,22 @@ static NSString *NewNoteID(void) {
         NSString *json = [self capturesJSON];
         NSString *js = [NSString stringWithFormat:@"window.__initCaptures && window.__initCaptures(%@)", json];
         [self.web evaluateJavaScript:js completionHandler:nil];
+        return;
+    }
+    if ([msg.name isEqualToString:@"jsError"]) {
+        // 页面里的运行时异常写进日志，别再让它们只存在于控制台
+        NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
+        NSString *path = [SupportDir() stringByAppendingPathComponent:@"js-errors.log"];
+        NSString *line = [NSString stringWithFormat:@"%@  %@\n",
+                          [IsoFormatter() stringFromDate:[NSDate date]], t ?: @""];
+        NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:path];
+        if (fh == nil) {
+            [[NSFileManager defaultManager] createFileAtPath:path contents:nil attributes:nil];
+            fh = [NSFileHandle fileHandleForWritingAtPath:path];
+        }
+        [fh seekToEndOfFile];
+        [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];
+        [fh closeFile];
         return;
     }
     if ([msg.name isEqualToString:@"notedelete"]) {

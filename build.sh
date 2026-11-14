@@ -12,6 +12,16 @@ mkdir -p build
 echo "→ 抓取数据…"
 ANIMEBAR_OUT="$PWD/build/anime_board.html" python3 board/anime_board.py
 
+echo "→ 检查页面脚本…"
+python3 - <<'EOF'
+import re
+html = open('build/anime_board.html', encoding='utf-8').read()
+blocks = re.findall(r'<script>(.*?)</script>', html, re.S)
+open('/tmp/animebar-page.js', 'w', encoding='utf-8').write('\n;\n'.join(blocks))
+print(f"   提取 {len(blocks)} 段脚本")
+EOF
+node --check /tmp/animebar-page.js || { echo "! 页面脚本有语法错误"; exit 1; }
+
 echo "→ 编译图标…"
 mkdir -p build/icon
 xcrun actool --compile build/icon --platform macosx --minimum-deployment-target 12.0 \

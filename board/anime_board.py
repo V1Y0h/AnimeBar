@@ -500,6 +500,14 @@ def main():
 <main class="grid" id="view-showing" hidden>{showing_cards}</main>
 {CAPTURES_PAGE}
 <script>
+  // 运行时异常不再静默：写到宿主的日志，界面上看不出的错也能查
+  window.addEventListener('error', function (e) {{
+    try {{
+      const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.jsError;
+      if (h) h.postMessage((e.message || 'error') + ' @line ' + (e.lineno || 0));
+    }} catch (err) {{}}
+  }});
+
   let wd = 0, scoreFilter = 'all';
   const q = document.getElementById('q');
   const cards = [...document.querySelectorAll('.card')];
