@@ -77,6 +77,8 @@ static NSString *NewNoteID(void) {
     [cfg.userContentController addScriptMessageHandler:self name:@"openurl"];
     [cfg.userContentController addScriptMessageHandler:self name:@"copy"];
     [cfg.userContentController addScriptMessageHandler:self name:@"notesave"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"captures"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"triagesave"];
     self.web = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720) configuration:cfg];
     self.web.navigationDelegate = self;
     vc.view = self.web;
@@ -188,6 +190,18 @@ static NSString *NewNoteID(void) {
 - (void)doRefresh { [self load]; }
 
 - (void)userContentController:(WKUserContentController *)ucc didReceiveScriptMessage:(WKScriptMessage *)msg {
+    if ([msg.name isEqualToString:@"captures"]) {
+        // 页面主动来取；回复用 evaluateJavaScript 回调（WKScriptMessageHandler 是单向的）
+        NSString *json = [self capturesJSON];
+        NSString *js = [NSString stringWithFormat:@"window.__initCaptures && window.__initCaptures(%@)", json];
+        [self.web evaluateJavaScript:js completionHandler:nil];
+        return;
+    }
+    if ([msg.name isEqualToString:@"triagesave"]) {
+        NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
+        if (t.length) [self appendTriageMac:t];
+        return;
+    }
     if ([msg.name isEqualToString:@"notesave"]) {
         NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
         if (t.length) [self writeNotesJSON:t];
@@ -302,6 +316,107 @@ static NSString *NewNoteID(void) {
         }
     }
     [text writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+}
+
+#pragma mark - 捕获与复盘（与 DSH 端共用数据）
+
+static NSISO8601DateFormatter *IsoFormatter(void) {
+    static NSISO8601DateFormatter *f = nil;
+    if (f == nil) {
+        f = [NSISO8601DateFormatter new];
+        f.formatOptions = NSISO8601DateFormatWithInternetDateTime | NSISO8601DateFormatWithFractionalSeconds;
+    }
+    return f;
+}
+
+- (NSArray *)readJSONLLines:(NSString *)path {
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    if (data.length == 0) return @[];
+    NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    if (text == nil) return @[];
+    NSMutableArray *out = [NSMutableArray array];
+    for (NSString *line in [text componentsSeparatedByString:@"\n"]) {
+        NSString *trimmed = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        if (trimmed.length == 0) continue;
+        id obj = [NSJSONSerialization JSONObjectWithData:[trimmed dataUsingEncoding:NSUTF8StringEncoding]
+                                                options:0 error:NULL];
+        if ([obj isKindOfClass:[NSDictionary class]]) [out addObject:obj];
+    }
+    return out;
+}
+
+// 与 DSH 端同一套规则：两个 triage 文件按时间戳后写覆盖（LWW），墓碑表示未复盘
+- (NSString *)capturesJSON {
+    NSString *dir = SupportDir();
+    NSArray *caps = [self readJSONLLines:[dir stringByAppendingPathComponent:@"creation-log.jsonl"]];
+    NSArray *tri = [self readJSONLLines:[dir stringByAppendingPathComponent:@"triage.jsonl"]];
+    NSArray *triMac = [self readJSONLLines:[dir stringByAppendingPathComponent:@"triage-mac.jsonl"]];
+    NSArray *dels = [self readJSONLLines:[dir stringByAppendingPathComponent:@"capture-deletes.jsonl"]];
+
+    NSMutableSet *deleted = [NSMutableSet set];
+    for (NSDictionary *row in dels) {
+        NSString *nid = row[@"note_id"];
+        if ([nid isKindOfClass:[NSString class]]) [deleted addObject:nid];
+    }
+
+    NSMutableDictionary *latest = [NSMutableDictionary dictionary];
+    for (NSDictionary *row in [tri arrayByAddingObjectsFromArray:triMac]) {
+        NSString *nid = row[@"note_id"];
+        if (![nid isKindOfClass:[NSString class]]) continue;
+        NSString *stamp = row[@"triaged_at"] ?: row[@"cleared_at"];
+        double ts = 0;
+        if ([stamp isKindOfClass:[NSString class]]) {
+            NSDate *d = [IsoFormatter() dateFromString:stamp];
+            if (d) ts = d.timeIntervalSince1970;
+        }
+        NSDictionary *current = latest[nid];
+        if (current == nil || ts >= [current[@"ts"] doubleValue]) {
+            latest[nid] = @{ @"ts": @(ts), @"row": row };
+        }
+    }
+
+    NSMutableArray *items = [NSMutableArray array];
+    for (NSDictionary *cap in caps) {
+        NSString *nid = cap[@"note_id"];
+        if (![nid isKindOfClass:[NSString class]]) continue;
+        if ([deleted containsObject:nid]) continue;
+        NSDictionary *row = latest[nid][@"row"];
+        if (row != nil && [row[@"cleared"] boolValue]) row = nil;
+        [items addObject:@{ @"capture": cap, @"triage": row ?: [NSNull null] }];
+    }
+
+    [items sortUsingComparator:^NSComparisonResult(NSDictionary *a, NSDictionary *b) {
+        return [b[@"capture"][@"note_id"] compare:a[@"capture"][@"note_id"]];
+    }];
+
+    NSData *json = [NSJSONSerialization dataWithJSONObject:@{ @"items": items }
+                                                   options:NSJSONWritingSortedKeys error:NULL];
+    return [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] ?: @"{\"items\":[]}";
+}
+
+// Mac 侧复盘写入自己的文件，DSH 那边按时间戳合并
+- (void)appendTriageMac:(NSString *)text {
+    NSData *incoming = [text dataUsingEncoding:NSUTF8StringEncoding];
+    id obj = [NSJSONSerialization JSONObjectWithData:incoming options:0 error:NULL];
+    if (![obj isKindOfClass:[NSDictionary class]]) return;
+
+    NSMutableDictionary *record = [obj mutableCopy];
+    record[@"schema_version"] = @1;
+    record[@"triaged_at"] = [IsoFormatter() stringFromDate:[NSDate date]];
+
+    NSData *line = [NSJSONSerialization dataWithJSONObject:record options:NSJSONWritingSortedKeys error:NULL];
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"triage-mac.jsonl"];
+    NSMutableData *buf = [NSMutableData new];
+    NSData *old = [NSData dataWithContentsOfFile:path];
+    if (old.length > 0) {
+        [buf appendData:old];
+        if (((const char *)old.bytes)[old.length - 1] != '\n') [buf appendBytes:"\n" length:1];
+    }
+    [buf appendData:line];
+    [buf appendBytes:"\n" length:1];
+    [buf writeToFile:path options:NSDataWritingAtomic error:NULL];
+    [[NSFileManager defaultManager] setAttributes:@{ NSFilePosixPermissions: @(0600) }
+                                     ofItemAtPath:path error:nil];
 }
 
 // 把一行 JSON 原子地追加到 creation-log.jsonl（临时文件 + rename）
