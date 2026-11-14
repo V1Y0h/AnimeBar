@@ -3,3 +3,4 @@ AnimeBar.app/
 *.o
 .DS_Store
 board/vendor/
+spike/*/build/
