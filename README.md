@@ -10,11 +10,22 @@ macOS 菜单栏看番工具：本周新番、剧场版、以及日本正在上�
 
 ### 功能
 
-菜单栏点开是一个弹窗，三个标签：
+菜单栏点开是一个弹窗，四个标签：
 
 - **新番** — 本周在播的全部作品，可按星期、评分筛选
 - **剧场版** — 剧场版动画，可按评分或上映日排序
 - **上映中** — 日本影院正在上映的动画电影，带「リバイバル」（重映）标记
+- **记录** — 捕获与手记混排的列表：捕获来自 IINA 的 ⌃⌥K（见下），手记是自己写的；
+  每张卡片可补集数、现象/推测标签、维度与反思，支持清空复盘、删除、导出草稿
+
+### 捕获（配合 IINA）
+
+装上 [IINA 插件](integrations/iina/) 后，播放时按 **⌃⌥K**，App 会记下当前时间码，
+并在屏幕右上角浮出一个非激活的确认面板（**全屏播放时也能看到，不打断播放、不抢焦点**）。
+
+记录写入 `~/Library/Application Support/AnimeBar/creation-log.jsonl`，一行一条。
+复盘内容写在同目录的 `triage-mac.jsonl`，与
+[dsh-animebar](https://github.com/V1Y0h/dsh-animebar) 的 `triage.jsonl` 按时间戳合并。
 
 右上角 **EN / 中文** 切换界面语言，选择会记住。
 
@@ -50,11 +61,17 @@ open build/AnimeBar.app
 ### 目录结构
 
 ```
-app/main.m            菜单栏 App（Objective-C，Cocoa + WebKit）
-app/Info.plist        bundle 信息（LSUIElement，纯菜单栏）
-board/anime_board.py  生成弹窗里的 HTML
-board/assets/         占位图、英文名缓存
-build.sh              构建入口
+app/main.m                  菜单栏 App + 捕获接收端 + 确认浮层（Objective-C）
+app/Info.plist              bundle 信息（LSUIElement，纯菜单栏）
+app/AppIcon.icon/           图标源（actool 编译）
+app/MenuIcon.png            菜单栏图标
+board/anime_board.py        生成弹窗里的 HTML
+board/captures_tab.py       记录页（捕获 + 手记，卡片式）
+board/notes_tab.py          标签词表加载
+board/assets/               占位图、英文名缓存
+integrations/iina/          IINA 插件（捕获）
+spike/capture-panel/        浮层技术验证（历史，不参与构建）
+build.sh                    构建入口（含图标编译、脚本检查、签名）
 ```
 
 生成的页面就是普通 HTML/CSS/JS，没有构建步骤，也没有框架。
@@ -83,6 +100,16 @@ open build/AnimeBar.app
 ```
 
 Requires macOS 12+, Command Line Tools, and `python3` (standard library only).
+
+### Capture (with IINA)
+
+Install the [IINA plugin](integrations/iina/). While playing, press **⌃⌥K**; the app records
+the current timecode and shows a non-activating confirmation panel in the top-right corner
+(visible over fullscreen video, without interrupting playback or stealing focus).
+
+Captures are appended to `~/Library/Application Support/AnimeBar/creation-log.jsonl`.
+Triage written on the Mac goes to `triage-mac.jsonl` and is merged by timestamp with
+`triage.jsonl` from [dsh-animebar](https://github.com/V1Y0h/dsh-animebar).
 
 ### Data sources
 
