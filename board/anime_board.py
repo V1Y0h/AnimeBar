@@ -514,6 +514,7 @@ def main():
     cards.forEach(c => {{
       const okWd = wd === 0 || +c.dataset.wd === wd;
       const okKw = !kw || c.dataset.name.toLowerCase().includes(kw);
+      const okScore = inScore(+c.dataset.score || 0);
       c.style.display = okWd && okKw && okScore ? '' : 'none';
     }});
   }}
