@@ -25,10 +25,23 @@ static NSString *NewNoteID(void) {
     return [NSString stringWithUTF8String:out];
 }
 
+// 捕获确认浮层：非激活、可加入所有空间、能贴在别人全屏之上
+@interface CaptureFlashPanel : NSPanel
+@end
+
+@implementation CaptureFlashPanel
+- (BOOL)canBecomeKeyWindow { return NO; }
+- (BOOL)canBecomeMainWindow { return NO; }
+@end
+
 @interface AppDelegate : NSObject <NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate>
 @property (strong) NSStatusItem *statusItem;
 @property (strong) NSPopover *popover;
 @property (strong) WKWebView *web;
+@property (strong) CaptureFlashPanel *flashPanel;
+@property (strong) NSTextField *flashHead;
+@property (strong) NSTextField *flashSub;
+@property (assign) NSInteger flashGeneration;
 @end
 
 @implementation AppDelegate
@@ -315,6 +328,72 @@ static NSString *NewNoteID(void) {
                                      ofItemAtPath:path error:nil];
 }
 
+// 捕获后浮 2.5 秒，让你确认「记下了」。
+// 关键：orderFrontRegardless 而不是 makeKeyAndOrderFront——不能把播放器的焦点抢走。
+- (void)flashCaptureAt:(double)t title:(NSString *)title {
+    if (self.flashPanel == nil) {
+        NSRect r = NSMakeRect(0, 0, 300, 88);
+        CaptureFlashPanel *p = [[CaptureFlashPanel alloc]
+            initWithContentRect:r
+                      styleMask:(NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel)
+                        backing:NSBackingStoreBuffered
+                          defer:NO];
+        p.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces
+                             | NSWindowCollectionBehaviorFullScreenAuxiliary
+                             | NSWindowCollectionBehaviorStationary;
+        p.level = NSStatusWindowLevel;
+        p.hidesOnDeactivate = NO;
+        p.opaque = NO;
+        p.backgroundColor = [NSColor clearColor];
+
+        NSVisualEffectView *bg = [[NSVisualEffectView alloc] initWithFrame:r];
+        bg.material = NSVisualEffectMaterialHUDWindow;
+        bg.blendingMode = NSVisualEffectBlendingModeBehindWindow;
+        bg.state = NSVisualEffectStateActive;
+        bg.wantsLayer = YES;
+        bg.layer.cornerRadius = 14;
+        bg.layer.masksToBounds = YES;
+
+        self.flashHead = [NSTextField labelWithString:@""];
+        self.flashHead.font = [NSFont monospacedSystemFontOfSize:15 weight:NSFontWeightMedium];
+        self.flashHead.textColor = [NSColor labelColor];
+        self.flashHead.frame = NSMakeRect(18, 48, 264, 22);
+        self.flashHead.lineBreakMode = NSLineBreakByTruncatingTail;
+
+        self.flashSub = [NSTextField labelWithString:@""];
+        self.flashSub.font = [NSFont systemFontOfSize:11];
+        self.flashSub.textColor = [NSColor secondaryLabelColor];
+        self.flashSub.frame = NSMakeRect(18, 24, 264, 18);
+        self.flashSub.lineBreakMode = NSLineBreakByTruncatingTail;
+
+        [bg addSubview:self.flashHead];
+        [bg addSubview:self.flashSub];
+        p.contentView = bg;
+        self.flashPanel = p;
+    }
+
+    int total = (int)(t + 0.5);
+    self.flashHead.stringValue = [NSString stringWithFormat:@"已记录  %02d:%02d", total / 60, total % 60];
+    self.flashSub.stringValue = (title.length > 0) ? title : @"（无片名）";
+
+    NSScreen *scr = [NSScreen mainScreen] ?: [NSScreen screens].firstObject;
+    NSRect vf = scr.visibleFrame;
+    NSRect f = self.flashPanel.frame;
+    f.origin.x = NSMaxX(vf) - f.size.width - 24;
+    f.origin.y = NSMaxY(vf) - f.size.height - 24;
+    [self.flashPanel setFrame:f display:NO];
+    [self.flashPanel orderFrontRegardless];
+
+    self.flashGeneration += 1;
+    NSInteger gen = self.flashGeneration;
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.5 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        if (gen != weakSelf.flashGeneration) return;
+        [weakSelf.flashPanel orderOut:nil];
+    });
+}
+
 // animebar://capture?t=123.4&src=abema&ep=7&scope=cut&bangumi=423000
 - (void)handleCaptureURL:(NSURL *)u {
     NSMutableDictionary *q = [NSMutableDictionary new];
@@ -363,6 +442,7 @@ static NSString *NewNoteID(void) {
         return;
     }
     [self appendJSONLLine:line];
+    [self flashCaptureAt:(double)[rec[@"t_start"] doubleValue] title:(NSString *)rec[@"title"]];
 }
 
 - (void)application:(NSApplication *)app openURLs:(NSArray<NSURL *> *)urls {
