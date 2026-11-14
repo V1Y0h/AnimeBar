@@ -4,3 +4,4 @@ AnimeBar.app/
 .DS_Store
 board/vendor/
 spike/*/build/
+spike/testmedia/

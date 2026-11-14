@@ -1,5 +1,10 @@
 #!/bin/bash
 # 构建 AnimeBar.app：先抓数据生成页面，再编译并组装 App 包
+#
+# 组装和签名都在临时目录里做：这个仓库位于 ~/Documents（iCloud 同步），
+# iCloud 会在写入后异步追加 com.apple.provenance / com.apple.fileprovider 等属性，
+# 撞上 codesign 就会报 "resource fork, Finder information, or similar detritus not allowed"。
+# 临时目录不受影响，签完再拷回来。
 set -e
 cd "$(dirname "$0")"
 
@@ -7,16 +12,17 @@ mkdir -p build
 echo "→ 抓取数据…"
 ANIMEBAR_OUT="$PWD/build/anime_board.html" python3 board/anime_board.py
 
-APP=build/AnimeBar.app
-rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp app/Info.plist "$APP/Contents/Info.plist"
-
 echo "→ 编译图标…"
 mkdir -p build/icon
 xcrun actool --compile build/icon --platform macosx --minimum-deployment-target 12.0 \
   --app-icon AppIcon --output-partial-info-plist build/icon/partial.plist \
   app/AppIcon.icon >/dev/null
+
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
+APP="$STAGE/AnimeBar.app"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+cp app/Info.plist "$APP/Contents/Info.plist"
 cp build/icon/AppIcon.icns build/icon/Assets.car "$APP/Contents/Resources/"
 cp app/MenuIcon.png "$APP/Contents/Resources/"
 
@@ -35,8 +41,6 @@ for f in MenuIcon.png AppIcon.icns Assets.car; do
   fi
 done
 
-# ~/Documents 若被 iCloud 同步，文件会带 com.apple.provenance 等扩展属性。
-# --deep 会递归签名、撞上这些属性后报 "detritus not allowed"；单层签名不受影响。
 xattr -cr "$APP"
 if codesign --force -s - "$APP"; then
   echo "✓ 已签名（ad-hoc）"
@@ -44,4 +48,6 @@ else
   echo "! 签名失败：本机能跑，但 TCC 权限会随每次重装重新询问"
 fi
 
-echo "✓ $APP"
+rm -rf build/AnimeBar.app
+ditto "$APP" build/AnimeBar.app
+echo "✓ build/AnimeBar.app"

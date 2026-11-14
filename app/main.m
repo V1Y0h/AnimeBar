@@ -336,6 +336,9 @@ static NSString *NewNoteID(void) {
     rec[@"created_at"] = [iso stringFromDate:[NSDate date]];
     rec[@"status"] = @"inbox";                  // inbox = 未复盘
     rec[@"source"] = q[@"src"] ?: @"unknown";
+    // 播放器给的片名，Triage 时用来认片
+    NSString *titleParam = (NSString *)q[@"title"];
+    if (titleParam.length > 0) rec[@"title"] = titleParam;
     rec[@"scope"] = q[@"scope"] ?: @"cut";
     if (q[@"ep"] != nil) rec[@"episode"] = @([q[@"ep"] integerValue]);
     if (q[@"t"] != nil) {

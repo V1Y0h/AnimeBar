@@ -1,0 +1,14 @@
+{
+  "name": "AnimeBar Capture",
+  "identifier": "io.iina.animebar-capture",
+  "version": "0.1.0",
+  "description": "把当前播放位置记录到 AnimeBar 的捕获队列。",
+  "author": {
+    "name": "AnimeBar"
+  },
+  "entry": "main.js",
+  "permissions": [
+    "show-osd",
+    "file-system"
+  ]
+}
