@@ -77,13 +77,19 @@ NOTES_HTML = """
     <label><span class="l-zh">推测</span><span class="l-en">Speculation</span></label>
     <div class="chips" id="n-speculations">\n      %%CHIPS_SPECULATION%%\n    </div>
     <input id="n-evidence" data-zh="依据" data-en="Evidence" data-ja="根拠" placeholder="依据">
-    <label><span class="l-zh">维度</span><span class="l-en">Dimensions</span></label>
-    <label><span class="l-zh">作画</span><span class="l-en">sakuga</span><span class="l-ja">作画</span></label>
-    <div class="chips" data-dim="art">\n      %%CHIPS_DIM_ART%%\n    </div>
-    <label><span class="l-zh">演出</span><span class="l-en">direction</span><span class="l-ja">演出</span></label>
-    <div class="chips" data-dim="staging">\n      %%CHIPS_DIM_STAGING%%\n    </div>
-    <label><span class="l-zh">声音</span><span class="l-en">sound</span><span class="l-ja">音響</span></label>
-    <div class="chips" data-dim="sound">\n      %%CHIPS_DIM_SOUND%%\n    </div>
+    <style>
+      .more-dims { margin: 8px 0 4px; border-top: 1px solid #1e293b; padding-top: 8px; }
+      .more-dims summary { cursor: pointer; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    </style>
+    <details class="more-dims">
+      <summary><span class="l-zh">更多（维度）</span><span class="l-en">More (dimensions)</span><span class="l-ja">その他（評価軸）</span></summary>
+      <label><span class="l-zh">作画</span><span class="l-en">sakuga</span><span class="l-ja">作画</span></label>
+      <div class="chips" data-dim="art">\n        %%CHIPS_DIM_ART%%\n      </div>
+      <label><span class="l-zh">演出</span><span class="l-en">direction</span><span class="l-ja">演出</span></label>
+      <div class="chips" data-dim="staging">\n        %%CHIPS_DIM_STAGING%%\n      </div>
+      <label><span class="l-zh">声音</span><span class="l-en">sound</span><span class="l-ja">音響</span></label>
+      <div class="chips" data-dim="sound">\n        %%CHIPS_DIM_SOUND%%\n      </div>
+    </details>
     <label><span class="l-zh">如果是我</span><span class="l-en">What I would do</span></label>
     <textarea id="n-reflection" data-zh="反思" data-en="Reflection" data-ja="自分なら" placeholder="反思"></textarea>
     <div class="nbar">
