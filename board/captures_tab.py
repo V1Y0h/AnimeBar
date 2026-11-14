@@ -40,9 +40,12 @@ CAPTURES_PAGE = """
   .cap-save { border: 1px solid #22c55e; background: #22c55e; color: #04140a; font-weight: 600; }
   .cap-clear, .cap-del { border: 1px solid #1e293b; background: transparent; color: #94a3b8; }
   .cap-del.confirm { border-color: #b91c1c; color: #fca5a5; }
-  .more-dims { margin: 6px 0; border-top: 1px solid #1e293b; padding-top: 6px; }
-  .more-dims summary { cursor: pointer; font-size: 12px; color: #94a3b8; }
-  .more-dims select { background: #020617; border: 1px solid #1e293b; border-radius: 6px; color: #e2e8f0; font-size: 12px; padding: 2px 6px; margin: 0 8px 4px 0; }
+  .cap-more { margin: 8px 0 2px; border: 1px solid #1e293b; background: transparent; color: #94a3b8; border-radius: 7px; padding: 3px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .cap-more:hover { color: #e2e8f0; border-color: #334155; }
+  .cap-more .caret { display: inline-block; width: 12px; transition: transform .15s ease; }
+  .cap-more[aria-expanded="true"] .caret { transform: rotate(90deg); }
+  .cap-dims { margin-top: 4px; padding: 6px 8px; border-left: 2px solid #1e293b; }
+  .cap-card button:focus-visible, .cap-card input:focus-visible, .cap-card textarea:focus-visible { outline: 2px solid #22c55e; outline-offset: 1px; }
 </style>
 """
 
@@ -174,20 +177,25 @@ CAPTURES_JS = r"""
     }).join('');
   }
 
+  // 维度：与现象/推测同一套芯片，每个维度单选；折叠条也用按钮，不用原生 details
   function dimsBlock(selected) {
     const dims = selected || {};
     const group = (facet, label) => {
-      const opts = tagsOf('note', facet).map((t) => {
+      const chips = tagsOf('note', facet).map((t) => {
         const zh = t.label.zh || t.slug;
-        return '<option value="' + esc(zh) + '"' + (dims[facet] === zh ? ' selected' : '') + '>' + esc(labelOf(t)) + '</option>';
+        const on = dims[facet] === zh;
+        return '<button type="button" data-dim-value="' + esc(zh) + '"' + (on ? ' class="on"' : '') + '>' + esc(labelOf(t)) + '</button>';
       }).join('');
-      return '<span>' + label + '</span><select data-dim="' + facet + '"><option value="">—</option>' + opts + '</select>';
+      return '<div class="cap-label">' + label + '</div>' +
+        '<div class="chips" data-dim="' + facet + '">' + chips + '</div>';
     };
-    return '<details class="more-dims"><summary>' + T('更多（维度）', 'More (dimensions)', 'その他（評価軸）') + '</summary>' +
-      group('art', T('作画', 'sakuga', '作画')) +
-      group('staging', T('演出', 'direction', '演出')) +
-      group('sound', T('声音', 'sound', '音響')) +
-      '</details>';
+    return '<button type="button" class="cap-more" aria-expanded="false">' +
+        '<span class="caret">▸</span>' + T('更多（维度）', 'More (dimensions)', 'その他（評価軸）') + '</button>' +
+      '<div class="cap-dims" hidden>' +
+        group('art', T('作画', 'sakuga', '作画')) +
+        group('staging', T('演出', 'direction', '演出')) +
+        group('sound', T('声音', 'sound', '音響')) +
+      '</div>';
   }
 
   function noteCard(item) {
@@ -280,6 +288,24 @@ CAPTURES_JS = r"""
   }
 
   document.addEventListener('click', (e) => {
+    const more = e.target.closest('.cap-more');
+    if (more) {
+      const box = more.nextElementSibling;
+      const open = more.getAttribute('aria-expanded') === 'true';
+      more.setAttribute('aria-expanded', open ? 'false' : 'true');
+      if (box) box.hidden = open;
+      return;
+    }
+
+    const dimChip = e.target.closest('#cap-hub .chips[data-dim] button');
+    if (dimChip) {
+      // 每个维度单选
+      const box = dimChip.parentElement;
+      Array.from(box.querySelectorAll('button.on')).forEach((b) => b.classList.remove('on'));
+      dimChip.classList.add('on');
+      return;
+    }
+
     const chip = e.target.closest('#cap-hub .chips button');
     if (chip) { chip.classList.toggle('on'); return; }
 
@@ -301,7 +327,10 @@ CAPTURES_JS = r"""
     if (e.target.closest('.cap-save')) {
       if (kind === 'note') {
         const dims = {};
-        card.querySelectorAll('select[data-dim]').forEach((s) => { if (s.value) dims[s.dataset.dim] = s.value; });
+        card.querySelectorAll('.chips[data-dim]').forEach((box) => {
+          const on = box.querySelector('button.on');
+          if (on) dims[box.dataset.dim] = on.dataset.dimValue;
+        });
         send('noteupdate', JSON.stringify({
           id: id,
           title: card.querySelector('.cap-title').value,
