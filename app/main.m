@@ -177,10 +177,7 @@ static NSString *NewNoteID(void) {
 - (void)userContentController:(WKUserContentController *)ucc didReceiveScriptMessage:(WKScriptMessage *)msg {
     if ([msg.name isEqualToString:@"notesave"]) {
         NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
-        if (t.length) {
-            NSString *path = [SupportDir() stringByAppendingPathComponent:@"notes.json"];
-            [t writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        }
+        if (t.length) [self writeNotesJSON:t];
         return;
     }
     if ([msg.name isEqualToString:@"copy"]) {
@@ -245,6 +242,54 @@ static NSString *NewNoteID(void) {
     };
 }
 
+
+// 记录条数；不是数组或解析失败都算 0
+- (NSUInteger)countOfNotesInData:(NSData *)data {
+    if (data.length == 0) return 0;
+    id obj = [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL];
+    return [obj isKindOfClass:[NSArray class]] ? [(NSArray *)obj count] : 0;
+}
+
+// 每次内容变化前留一份快照，只保留最近 5 份
+- (void)snapshotNotesData:(NSData *)data {
+    if (data.length == 0) return;
+    NSString *dir = [SupportDir() stringByAppendingPathComponent:@"notes-backups"];
+    [[NSFileManager defaultManager] createDirectoryAtPath:dir
+                             withIntermediateDirectories:YES attributes:nil error:nil];
+    NSDateFormatter *df = [NSDateFormatter new];
+    df.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+    df.dateFormat = @"yyyyMMdd-HHmmss";
+    NSString *name = [NSString stringWithFormat:@"notes-%@.json", [df stringFromDate:[NSDate date]]];
+    [data writeToFile:[dir stringByAppendingPathComponent:name]
+              options:NSDataWritingAtomic error:nil];
+
+    NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:dir error:nil];
+    NSArray *sorted = [files sortedArrayUsingSelector:@selector(compare:)];
+    for (NSUInteger i = 0; i + 5 < sorted.count; i++) {
+        [[NSFileManager defaultManager] removeItemAtPath:[dir stringByAppendingPathComponent:sorted[i]]
+                                                   error:nil];
+    }
+}
+
+// 落盘前先留快照：内容变了就备份旧内容，条数掉到 0 时额外记一条日志
+- (void)writeNotesJSON:(NSString *)text {
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"notes.json"];
+    NSData *oldData = [NSData dataWithContentsOfFile:path];
+    NSData *newData = [text dataUsingEncoding:NSUTF8StringEncoding];
+
+    BOOL changed = (oldData == nil) || ![oldData isEqualToData:newData];
+    NSUInteger oldCount = [self countOfNotesInData:oldData];
+    NSUInteger newCount = [self countOfNotesInData:newData];
+
+    if (changed && oldCount > 0) {
+        [self snapshotNotesData:oldData];
+        if (newCount == 0) {
+            NSLog(@"notes: 记录数 %lu → 0，旧内容已存入 notes-backups/",
+                  (unsigned long)oldCount);
+        }
+    }
+    [text writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+}
 
 // 把一行 JSON 原子地追加到 creation-log.jsonl（临时文件 + rename）
 - (void)appendJSONLLine:(NSData *)line {

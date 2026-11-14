@@ -184,7 +184,12 @@ NOTES_JS = r"""
   syncPlaceholders();
   document.addEventListener('animebar-lang', () => { syncPlaceholders(); render(); });
   window.__initNotes = (data) => {
-    if (Array.isArray(data)) { notes = data; save(); render(); }
+    if (!Array.isArray(data)) return;
+    notes = data;
+    // 只同步内存与 localStorage 镜像，不写回磁盘：
+    // 打开面板不该是一次写操作，否则注入没到位时会把空数组落盘覆盖真实记录
+    try { localStorage.setItem(KEY, JSON.stringify(notes)); } catch (e) {}
+    render();
   };
 
   render();
