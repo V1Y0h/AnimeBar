@@ -75,13 +75,49 @@ CAPTURES_JS = r"""
   };
 
   let items = null;
+  let lastPayload = '';
+  let pendingPayload = null;
 
+  // 页面是 innerHTML 重绘的，重绘会清掉正在输入的内容。
+  // 所以：数据没变不画；正在卡片里编辑时不画（离开输入框再补）。
   window.__initCaptures = (data) => {
+    const next = JSON.stringify((data && data.items) || []);
+    const active = document.activeElement;
+    const editing = active && active.closest && active.closest('#view-captures .cap-card');
+    if (editing) {
+      pendingPayload = { next: next, items: (data && data.items) || [] };
+      return;
+    }
+    if (next === lastPayload) return;
+    lastPayload = next;
     items = (data && data.items) || [];
     render();
   };
 
   window.__loadCaptures = () => send('captures', '1');
+
+  // 焦点离开卡片时，把等待中的刷新补上
+  document.addEventListener('focusout', (e) => {
+    if (!e.target.closest || !e.target.closest('#view-captures .cap-card')) return;
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (active && active.closest && active.closest('#view-captures .cap-card')) return;
+      if (!pendingPayload) return;
+      const payload = pendingPayload;
+      pendingPayload = null;
+      if (payload.next !== lastPayload) {
+        lastPayload = payload.next;
+        items = payload.items;
+        render();
+      }
+    }, 0);
+  });
+
+  // 停在捕获页时轮询，切换走就自然停止（hidden 判断）
+  setInterval(() => {
+    const view = $('view-captures');
+    if (view && !view.hidden) window.__loadCaptures();
+  }, 4000);
 
   function chipRow(kind, selected) {
     return (window.__TAGS__ || [])
@@ -190,12 +226,14 @@ CAPTURES_JS = r"""
       }));
       const b = card.querySelector('.cap-save');
       b.textContent = T('已保存', 'Saved', '保存しました');
+      lastPayload = '';  // 强制下次刷新重绘
       setTimeout(() => window.__loadCaptures(), 300);
       return;
     }
 
     if (e.target.closest('.cap-clear')) {
       send('triagesave', JSON.stringify({ note_id: noteID, clear: true }));
+      lastPayload = '';
       setTimeout(() => window.__loadCaptures(), 300);
       return;
     }
@@ -209,6 +247,7 @@ CAPTURES_JS = r"""
         return;
       }
       send('capturedelete', noteID);
+      lastPayload = '';
       setTimeout(() => window.__loadCaptures(), 300);
     }
   });
