@@ -113,6 +113,14 @@ CAPTURES_JS = r"""
     }, 0);
   });
 
+  // 切语言时重绘（正在卡片里编辑就等离开再画，避免冲掉输入）
+  document.addEventListener('animebar-lang', () => {
+    const active = document.activeElement;
+    if (active && active.closest && active.closest('#view-captures .cap-card')) return;
+    lastPayload = '';
+    render();
+  });
+
   // 停在捕获页时轮询，切换走就自然停止（hidden 判断）
   setInterval(() => {
     const view = $('view-captures');
