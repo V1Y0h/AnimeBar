@@ -14,6 +14,17 @@ static NSString *ResPath(NSString *name) {
     return [[NSFileManager defaultManager] fileExistsAtPath:p] ? p : nil;
 }
 
+// 时间戳前缀的 26 位 ID（Crockford base32，近似 ULID），便于按时间排序
+static NSString *NewNoteID(void) {
+    static const char *alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    uint64_t ms = (uint64_t)([[NSDate date] timeIntervalSince1970] * 1000.0);
+    char out[27];
+    for (int i = 9; i >= 0; i--) { out[i] = alphabet[ms & 31]; ms >>= 5; }
+    for (int i = 10; i < 26; i++) { out[i] = alphabet[arc4random_uniform(32)]; }
+    out[26] = '\0';
+    return [NSString stringWithUTF8String:out];
+}
+
 @interface AppDelegate : NSObject <NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate>
 @property (strong) NSStatusItem *statusItem;
 @property (strong) NSPopover *popover;
@@ -235,10 +246,82 @@ static NSString *ResPath(NSString *name) {
 }
 
 
+// 把一行 JSON 原子地追加到 creation-log.jsonl（临时文件 + rename）
+- (void)appendJSONLLine:(NSData *)line {
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"creation-log.jsonl"];
+    NSMutableData *buf = [NSMutableData new];
+    NSData *old = [NSData dataWithContentsOfFile:path];
+    if (old.length > 0) {
+        [buf appendData:old];
+        if (((const char *)old.bytes)[old.length - 1] != '\n') {
+            [buf appendBytes:"\n" length:1];
+        }
+    }
+    [buf appendData:line];
+    [buf appendBytes:"\n" length:1];
+
+    NSError *err = nil;
+    if (![buf writeToFile:path options:NSDataWritingAtomic error:&err]) {
+        NSLog(@"capture: 写入失败 %@", err);
+        return;
+    }
+    // 里面有 private 字段，收窄到仅本人可读
+    [[NSFileManager defaultManager] setAttributes:@{ NSFilePosixPermissions: @(0600) }
+                                     ofItemAtPath:path error:nil];
+}
+
+// animebar://capture?t=123.4&src=abema&ep=7&scope=cut&bangumi=423000
+- (void)handleCaptureURL:(NSURL *)u {
+    NSMutableDictionary *q = [NSMutableDictionary new];
+    for (NSString *pair in [[u query] componentsSeparatedByString:@"&"]) {
+        NSRange eq = [pair rangeOfString:@"="];
+        if (eq.location == NSNotFound) continue;
+        NSString *k = [pair substringToIndex:eq.location];
+        NSString *v = [[pair substringFromIndex:eq.location + 1] stringByRemovingPercentEncoding];
+        if (k.length > 0 && v != nil) q[k] = v;
+    }
+
+    NSDateFormatter *iso = [NSDateFormatter new];
+    iso.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+    iso.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZZZZZ";
+
+    NSMutableDictionary *rec = [NSMutableDictionary new];
+    rec[@"schema_version"] = @1;
+    rec[@"note_id"] = NewNoteID();
+    rec[@"created_at"] = [iso stringFromDate:[NSDate date]];
+    rec[@"status"] = @"inbox";                  // inbox = 未复盘
+    rec[@"source"] = q[@"src"] ?: @"unknown";
+    rec[@"scope"] = q[@"scope"] ?: @"cut";
+    if (q[@"ep"] != nil) rec[@"episode"] = @([q[@"ep"] integerValue]);
+    if (q[@"t"] != nil) {
+        // 取到毫秒，避免 123.40000000000001 这种浮点尾巴
+        rec[@"t_start"] = @(round([q[@"t"] doubleValue] * 1000.0) / 1000.0);
+    }
+    if (q[@"bangumi"] != nil) rec[@"bangumi_id"] = @([q[@"bangumi"] integerValue]);
+    rec[@"phenomena"] = @[];
+    rec[@"speculations"] = @[];
+    rec[@"my_take"] = @"";
+    rec[@"evidence"] = @[];
+
+    NSError *err = nil;
+    NSData *line = [NSJSONSerialization dataWithJSONObject:rec
+                                                  options:NSJSONWritingSortedKeys
+                                                    error:&err];
+    if (line == nil) {
+        NSLog(@"capture: 序列化失败 %@", err);
+        return;
+    }
+    [self appendJSONLLine:line];
+}
+
 - (void)application:(NSApplication *)app openURLs:(NSArray<NSURL *> *)urls {
     // animebar://anich?title=xxx —— 复制标题并唤起 AniCh
     for (NSURL *u in urls) {
         if (![[u scheme] isEqualToString:@"animebar"]) continue;
+        if ([[u host] isEqualToString:@"capture"]) {   // 捕获记录，不唤起 AniCh
+            [self handleCaptureURL:u];
+            continue;
+        }
         NSString *title = nil;
         for (NSString *pair in [[u query] componentsSeparatedByString:@"&"]) {
             NSRange eq = [pair rangeOfString:@"="];
