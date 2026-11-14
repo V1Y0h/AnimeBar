@@ -1,0 +1,5 @@
+{ "fill": { "automatic-gradient": "srgb:0.97,0.975,0.99,1" },
+  "groups": [ { "layers": [ { "image-name": "glyph.svg", "name": "glyph", "glass": true } ] } ],
+  "shadow": { "kind": "neutral", "opacity": 0.4 },
+  "translucency": { "enabled": true, "value": 0.4 },
+  "supported-platforms": { "squares": [ "macOS" ] } }

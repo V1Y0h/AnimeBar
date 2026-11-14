@@ -1,7 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
 
-static NSString *const kDevDir = @"/Users/jerryli/Documents/deepseek-harness/default-workspace/code";
+static NSString *const kDevDir = @"/Users/jerryli/Documents/deepseek-harness/实验/AnimeBar";
 
 static NSString *SupportDir(void) {
     NSString *p = [@"~/Library/Application Support/AnimeBar" stringByExpandingTildeInPath];
@@ -108,7 +108,7 @@ static NSString *ResPath(NSString *name) {
     if ([[NSFileManager defaultManager] fileExistsAtPath:s]) return s;
     NSString *b = ResPath(@"anime_board.html");
     if (b) return b;
-    return [kDevDir stringByAppendingPathComponent:@"anime_board.html"];
+    return [kDevDir stringByAppendingPathComponent:@"build/anime_board.html"];
 }
 
 - (NSString *)scriptPath {
@@ -116,7 +116,7 @@ static NSString *ResPath(NSString *name) {
     if ([[NSFileManager defaultManager] fileExistsAtPath:s]) return s;
     NSString *b = ResPath(@"anime_board.py");
     if (b) return b;
-    return [kDevDir stringByAppendingPathComponent:@"anime_board.py"];
+    return [kDevDir stringByAppendingPathComponent:@"board/anime_board.py"];
 }
 
 - (void)prepareSupport {
