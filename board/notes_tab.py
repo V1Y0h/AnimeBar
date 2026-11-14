@@ -1,46 +1,87 @@
 """记录页：制作人视角。独立模块，主模板只做两处占位插入。"""
 
+import html as _html
+import json as _json
+import os as _os
+
+# 标签词表和 DSH 面板共用一份：~/Library/Application Support/AnimeBar/tags.json
+# 文件不存在时退回这里的内置列表，保证任何机器上都能构建。
+_TAGS_PATH = _os.path.expanduser("~/Library/Application Support/AnimeBar/tags.json")
+
+_FALLBACK_TAGS = [
+    ("phenomenon", "staging", "静止画多", "Many stills", "静止画が多い"),
+    ("phenomenon", "art", "精度落差", "Quality drop", "精度の落差"),
+    ("phenomenon", "art", "画风突变", "Style shift", "絵柄の変化"),
+    ("phenomenon", "staging", "重复镜头", "Repeated shots", "繰り返しカット"),
+    ("phenomenon", "staging", "演出神回", "Standout episode", "神回の演出"),
+    ("phenomenon", "audience", "评分分歧", "Score divergence", "評価の乖離"),
+    ("speculation", "production", "疑似外包", "Suspected outsourcing", "外注の可能性"),
+    ("speculation", "production", "工期紧张", "Schedule crunch", "工期逼迫"),
+    ("speculation", "production", "作监尽力", "AD carried it", "作監の踏ん張り"),
+    ("speculation", "production", "资方干预", "Producer meddling", "出資者の介入"),
+    ("note", "art", "值得学习", "Worth studying", "参考になる"),
+    ("note", "art", "中规中矩", "By the book", "可もなく不可もなく"),
+    ("note", "art", "有待提高", "Needs work", "要改善"),
+    ("note", "staging", "有巧思", "Clever", "工夫がある"),
+    ("note", "staging", "平淡", "Flat", "平凡"),
+    ("note", "staging", "用力过猛", "Overwrought", "やりすぎ"),
+    ("note", "sound", "加分项", "Adds value", "加点"),
+    ("note", "sound", "无感", "Forgettable", "響かない"),
+    ("note", "sound", "出戏", "Breaks immersion", "没入できない"),
+]
+
+
+def _load_tags():
+    try:
+        with open(_TAGS_PATH, encoding="utf-8") as f:
+            tags = _json.load(f).get("tags") or []
+    except Exception:
+        tags = []
+    if not tags:
+        return [
+            {"kind": k, "facet": f, "label": {"zh": zh, "en": en, "ja": ja}}
+            for (k, f, zh, en, ja) in _FALLBACK_TAGS
+        ]
+    return tags
+
+
+def _chips(kind, facet=None):
+    out = []
+    for tag in _load_tags():
+        if tag.get("kind") != kind:
+            continue
+        if facet is not None and tag.get("facet") != facet:
+            continue
+        label = tag.get("label") or {}
+        zh = label.get("zh") or tag.get("slug", "")
+        en = label.get("en") or zh
+        ja = label.get("ja") or en
+        out.append(
+            '<button type="button" data-tag="%s">'
+            '<span class="l-zh">%s</span><span class="l-en">%s</span><span class="l-ja">%s</span>'
+            "</button>"
+            % (_html.escape(zh), _html.escape(zh), _html.escape(en), _html.escape(ja))
+        )
+    return "\n      ".join(out)
+
+
 NOTES_HTML = """
 <main id="view-notes" hidden>
   <div class="notes-wrap">
     <label><span class="l-zh">作品名</span><span class="l-en">Title</span></label>
     <input id="n-title" data-zh="哪一部" data-en="Which title" data-ja="どの作品" placeholder="哪一部">
     <label><span class="l-zh">现象</span><span class="l-en">Symptoms</span></label>
-    <div class="chips" id="n-phenomena">
-      <button type="button" data-tag="静止画多"><span class="l-zh">静止画多</span><span class="l-en">Many stills</span></button>
-      <button type="button" data-tag="精度落差"><span class="l-zh">精度落差</span><span class="l-en">Quality drop</span></button>
-      <button type="button" data-tag="画风突变"><span class="l-zh">画风突变</span><span class="l-en">Style shift</span></button>
-      <button type="button" data-tag="重复镜头"><span class="l-zh">重复镜头</span><span class="l-en">Repeated shots</span></button>
-      <button type="button" data-tag="演出神回"><span class="l-zh">演出神回</span><span class="l-en">Standout episode</span></button>
-      <button type="button" data-tag="评分分歧"><span class="l-zh">评分分歧</span><span class="l-en">Score divergence</span></button>
-    </div>
+    <div class="chips" id="n-phenomena">\n      %%CHIPS_PHENOMENA%%\n    </div>
     <label><span class="l-zh">推测</span><span class="l-en">Speculation</span></label>
-    <div class="chips" id="n-speculations">
-      <button type="button" data-tag="疑似外包"><span class="l-zh">疑似外包</span><span class="l-en">Outsourcing?</span></button>
-      <button type="button" data-tag="工期紧张"><span class="l-zh">工期紧张</span><span class="l-en">Schedule crunch</span></button>
-      <button type="button" data-tag="作监尽力"><span class="l-zh">作监尽力</span><span class="l-en">AD carried it</span></button>
-      <button type="button" data-tag="资方干预"><span class="l-zh">资方干预</span><span class="l-en">Producer meddling</span></button>
-    </div>
+    <div class="chips" id="n-speculations">\n      %%CHIPS_SPECULATION%%\n    </div>
     <input id="n-evidence" data-zh="依据" data-en="Evidence" data-ja="根拠" placeholder="依据">
     <label><span class="l-zh">维度</span><span class="l-en">Dimensions</span></label>
     <label><span class="l-zh">作画</span><span class="l-en">sakuga</span><span class="l-ja">作画</span></label>
-    <div class="chips" data-dim="art">
-      <button type="button" data-tag="值得学习"><span class="l-zh">值得学习</span><span class="l-en">Worth studying</span></button>
-      <button type="button" data-tag="中规中矩"><span class="l-zh">中规中矩</span><span class="l-en">By the book</span></button>
-      <button type="button" data-tag="有待提高"><span class="l-zh">有待提高</span><span class="l-en">Needs work</span></button>
-    </div>
+    <div class="chips" data-dim="art">\n      %%CHIPS_DIM_ART%%\n    </div>
     <label><span class="l-zh">演出</span><span class="l-en">direction</span><span class="l-ja">演出</span></label>
-    <div class="chips" data-dim="staging">
-      <button type="button" data-tag="有巧思"><span class="l-zh">有巧思</span><span class="l-en">Clever</span></button>
-      <button type="button" data-tag="平淡"><span class="l-zh">平淡</span><span class="l-en">Flat</span></button>
-      <button type="button" data-tag="用力过猛"><span class="l-zh">用力过猛</span><span class="l-en">Overwrought</span></button>
-    </div>
+    <div class="chips" data-dim="staging">\n      %%CHIPS_DIM_STAGING%%\n    </div>
     <label><span class="l-zh">声音</span><span class="l-en">sound</span><span class="l-ja">音響</span></label>
-    <div class="chips" data-dim="sound">
-      <button type="button" data-tag="加分项"><span class="l-zh">加分项</span><span class="l-en">Adds value</span></button>
-      <button type="button" data-tag="无感"><span class="l-zh">无感</span><span class="l-en">Forgettable</span></button>
-      <button type="button" data-tag="出戏"><span class="l-zh">出戏</span><span class="l-en">Breaks immersion</span></button>
-    </div>
+    <div class="chips" data-dim="sound">\n      %%CHIPS_DIM_SOUND%%\n    </div>
     <label><span class="l-zh">如果是我</span><span class="l-en">What I would do</span></label>
     <textarea id="n-reflection" data-zh="反思" data-en="Reflection" data-ja="自分なら" placeholder="反思"></textarea>
     <div class="nbar">
@@ -52,6 +93,15 @@ NOTES_HTML = """
   </div>
 </main>
 """
+
+NOTES_HTML = (
+    NOTES_HTML
+    .replace("%%CHIPS_PHENOMENA%%", _chips("phenomenon"))
+    .replace("%%CHIPS_SPECULATION%%", _chips("speculation"))
+    .replace("%%CHIPS_DIM_ART%%", _chips("note", "art"))
+    .replace("%%CHIPS_DIM_STAGING%%", _chips("note", "staging"))
+    .replace("%%CHIPS_DIM_SOUND%%", _chips("note", "sound"))
+)
 
 NOTES_JS = r"""
 <script>
