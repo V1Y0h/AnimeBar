@@ -8,7 +8,9 @@ import html
 import json
 
 from notes_tab import NOTES_HTML, NOTES_JS
-from captures_tab import CAPTURES_HTML, CAPTURES_JS
+from captures_tab import CAPTURES_INNER, CAPTURES_JS
+
+NOTES_HTML = NOTES_HTML.replace("<!--CAP_HUB-->", CAPTURES_INNER)
 import scores
 import ja_titles
 import os
@@ -480,7 +482,6 @@ def main():
     <button data-mode="movie">{L('剧场版','Films')}</button>
     <button data-mode="showing">{L('上映中','In cinemas')}</button>
     <button data-mode="notes">{L('记录','Notes')}</button>
-    <button data-mode="captures">{L('捕获','Captures')}</button>
     <span class="sep"></span>
     <span id="filters" class="tools">
       <button data-wd="0" class="on">{L('全部','All')}</button>{tabs}
@@ -501,7 +502,6 @@ def main():
 <main class="grid" id="view-movie" hidden>{movie_cards}</main>
 <main class="grid" id="view-showing" hidden>{showing_cards}</main>
 {NOTES_HTML}
-{CAPTURES_HTML}
 <script>
   let wd = 0, scoreFilter = 'all';
   const q = document.getElementById('q');
@@ -582,12 +582,12 @@ def main():
   document.querySelectorAll('button[data-mode]').forEach(b => b.onclick = () => {{
     const mode = b.dataset.mode;
     document.querySelectorAll('button[data-mode]').forEach(x => x.classList.toggle('on', x === b));
-    for (const id of ['tv', 'movie', 'showing', 'notes', 'captures']) {{
+    for (const id of ['tv', 'movie', 'showing', 'notes']) {{
       document.getElementById('view-' + id).hidden = (id !== mode);
     }}
     document.getElementById('filters').hidden = mode !== 'tv';
-    document.getElementById('sorts').hidden = mode === 'showing' || mode === 'captures';
-    if (mode === 'captures' && window.__loadCaptures) window.__loadCaptures();
+    document.getElementById('sorts').hidden = mode === 'showing';
+    if (mode === 'notes' && window.__loadCaptures) window.__loadCaptures();
     apply();
   }});
   document.querySelectorAll('button[data-score]').forEach(b => b.onclick = () => {{

@@ -67,7 +67,9 @@ def _chips(kind, facet=None):
 
 NOTES_HTML = """
 <main id="view-notes" hidden>
+  <!--CAP_HUB-->
   <div class="notes-wrap">
+    <h3 class="notes-title"><span class="l-zh">手记</span><span class="l-en">Notes</span><span class="l-ja">手記</span></h3>
     <label><span class="l-zh">作品名</span><span class="l-en">Title</span></label>
     <input id="n-title" data-zh="哪一部" data-en="Which title" data-ja="どの作品" placeholder="哪一部">
     <label><span class="l-zh">现象</span><span class="l-en">Symptoms</span></label>

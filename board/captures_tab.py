@@ -4,18 +4,20 @@ import json as _json
 
 from notes_tab import _load_tags  # 复用同一份标签词表
 
-CAPTURES_HTML = """
-<main id="view-captures" hidden>
+CAPTURES_INNER = """
+<section id="cap-hub">
   <div class="caps-wrap">
+    <h3 class="caps-title"><span class="l-zh">待处理捕获</span><span class="l-en">Pending captures</span><span class="l-ja">未処理のキャプチャ</span></h3>
     <div class="caps-head">
       <span id="cap-count"></span>
       <button type="button" id="cap-export">导出草稿</button>
     </div>
     <div id="cap-list"></div>
   </div>
-</main>
+</section>
 <style>
   .caps-wrap { max-width: 880px; margin: 0 auto; padding: 4px 2px 20px; }
+  .caps-title { font-size: 13px; font-weight: 600; margin: 0 0 6px; color: #e2e8f0; }
   .caps-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #64748b; }
   .caps-head span { flex: 1; }
   .caps-head button { border: 1px solid #1e293b; background: transparent; color: #94a3b8; border-radius: 7px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
@@ -105,7 +107,7 @@ CAPTURES_JS = r"""
   window.__initCaptures = (data) => {
     const next = JSON.stringify((data && data.items) || []);
     const active = document.activeElement;
-    const editing = active && active.closest && active.closest('#view-captures .cap-card');
+    const editing = active && active.closest && active.closest('#cap-hub .cap-card');
     if (editing) {
       pendingPayload = { next: next, items: (data && data.items) || [] };
       return;
@@ -120,10 +122,10 @@ CAPTURES_JS = r"""
 
   // 焦点离开卡片时，把等待中的刷新补上
   document.addEventListener('focusout', (e) => {
-    if (!e.target.closest || !e.target.closest('#view-captures .cap-card')) return;
+    if (!e.target.closest || !e.target.closest('#cap-hub .cap-card')) return;
     setTimeout(() => {
       const active = document.activeElement;
-      if (active && active.closest && active.closest('#view-captures .cap-card')) return;
+      if (active && active.closest && active.closest('#cap-hub .cap-card')) return;
       if (!pendingPayload) return;
       const payload = pendingPayload;
       pendingPayload = null;
@@ -138,14 +140,14 @@ CAPTURES_JS = r"""
   // 切语言时重绘（正在卡片里编辑就等离开再画，避免冲掉输入）
   document.addEventListener('animebar-lang', () => {
     const active = document.activeElement;
-    if (active && active.closest && active.closest('#view-captures .cap-card')) return;
+    if (active && active.closest && active.closest('#cap-hub .cap-card')) return;
     lastPayload = '';
     render();
   });
 
   // 停在捕获页时轮询，切换走就自然停止（hidden 判断）
   setInterval(() => {
-    const view = $('view-captures');
+    const view = $('view-notes');
     if (view && !view.hidden) window.__loadCaptures();
   }, 4000);
 
@@ -235,7 +237,7 @@ CAPTURES_JS = r"""
   }
 
   document.addEventListener('click', (e) => {
-    const chip = e.target.closest('#view-captures .chips button');
+    const chip = e.target.closest('#cap-hub .chips button');
     if (chip) { chip.classList.toggle('on'); return; }
 
     if (e.target.closest('#cap-export')) {
@@ -245,7 +247,7 @@ CAPTURES_JS = r"""
       return;
     }
 
-    const card = e.target.closest('#view-captures .cap-card');
+    const card = e.target.closest('#cap-hub .cap-card');
     if (!card) return;
     const noteID = card.dataset.id;
 
