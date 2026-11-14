@@ -24,6 +24,8 @@ CAPTURES_HTML = """
   .cap-head-row b { font-variant-numeric: tabular-nums; color: #22c55e; }
   .cap-head-row em { font-style: normal; font-size: 11px; color: #22c55e; border: 1px solid #166534; border-radius: 999px; padding: 0 6px; }
   .cap-label { font-size: 11px; color: #64748b; margin: 6px 0 3px; }
+  .cap-ep { display: flex; gap: 6px; align-items: center; font-size: 11px; color: #64748b; margin-bottom: 2px; }
+  .cap-ep input { width: 64px; box-sizing: border-box; background: #020617; border: 1px solid #1e293b; border-radius: 7px; color: #e2e8f0; font-size: 12px; padding: 4px 6px; font-family: inherit; }
   .cap-take { width: 100%; box-sizing: border-box; min-height: 48px; resize: vertical; background: #020617; border: 1px solid #1e293b; border-radius: 7px; color: #e2e8f0; font-size: 12px; padding: 6px 8px; font-family: inherit; }
   .cap-actions { margin-top: 8px; display: flex; gap: 6px; align-items: center; }
   .cap-actions button { border-radius: 7px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
@@ -62,6 +64,15 @@ CAPTURES_JS = r"""
     const v = Math.max(0, Math.round(Number(sec) || 0));
     return String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0');
   };
+  // 从片名猜集数：'第7集' / 'xxx - 07' / 'E07' 都认
+  const guessEpisode = (title) => {
+    const t = String(title || '');
+    const m = t.match(/第\s*(\d{1,3})\s*[集話话]/)
+      || t.match(/\bE(\d{1,3})\b/i)
+      || t.match(/[-_\s](\d{1,3})(?:v\d)?(?:\.[A-Za-z0-9]+)?$/);
+    return m ? String(parseInt(m[1], 10)) : '';
+  };
+
   const labelOf = (tag) => {
     const l = tag.label || {};
     if (lang() === 'ja') return l.ja || l.en || tag.slug;
@@ -160,6 +171,9 @@ CAPTURES_JS = r"""
         '<div class="cap-head-row"><b>' + fmt(c.t_start) + '</b>' +
         '<span>' + esc(c.title || T('（无片名）', '(untitled)', '（無題）')) + '</span>' +
         (tr ? '<em>' + T('已复盘', 'done', '済') + '</em>' : '') + '</div>' +
+        '<div class="cap-ep"><span>' + T('集数', 'Episode', '話') + '</span>' +
+        '<input type="number" min="0" class="cap-epi" value="' +
+        esc((tr && tr.episode) ? tr.episode : guessEpisode(c.title)) + '"></div>' +
         '<div class="cap-label">' + T('现象', 'Observed', '現象') + '</div>' +
         '<div class="chips" data-kind="phenomenon">' + chipRow('phenomenon', ph) + '</div>' +
         '<div class="cap-label">' + T('推测', 'Speculation', '推測') + '</div>' +
@@ -228,6 +242,7 @@ CAPTURES_JS = r"""
       const pick = (kind) => Array.from(card.querySelectorAll('.chips[data-kind="' + kind + '"] button.on')).map((b) => b.dataset.slug);
       send('triagesave', JSON.stringify({
         note_id: noteID,
+        episode: Number(card.querySelector('.cap-epi').value) || undefined,
         phenomena: pick('phenomenon'),
         speculations: pick('speculation').map((tag) => ({ tag })),
         my_take: card.querySelector('.cap-take').value,
