@@ -80,6 +80,9 @@ static NSString *NewNoteID(void) {
     [cfg.userContentController addScriptMessageHandler:self name:@"captures"];
     [cfg.userContentController addScriptMessageHandler:self name:@"triagesave"];
     [cfg.userContentController addScriptMessageHandler:self name:@"capturedelete"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"noteadd"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"noteupdate"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"notedelete"];
     self.web = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720) configuration:cfg];
     self.web.navigationDelegate = self;
     vc.view = self.web;
@@ -196,6 +199,23 @@ static NSString *NewNoteID(void) {
         NSString *json = [self capturesJSON];
         NSString *js = [NSString stringWithFormat:@"window.__initCaptures && window.__initCaptures(%@)", json];
         [self.web evaluateJavaScript:js completionHandler:nil];
+        return;
+    }
+    if ([msg.name isEqualToString:@"notedelete"]) {
+        NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
+        if (t.length) [self deleteManualNote:t];
+        [self.web evaluateJavaScript:@"window.__loadCaptures && window.__loadCaptures()" completionHandler:nil];
+        return;
+    }
+    if ([msg.name isEqualToString:@"noteupdate"]) {
+        NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
+        if (t.length) [self updateManualNote:t];
+        [self.web evaluateJavaScript:@"window.__loadCaptures && window.__loadCaptures()" completionHandler:nil];
+        return;
+    }
+    if ([msg.name isEqualToString:@"noteadd"]) {
+        [self appendManualNote];
+        [self.web evaluateJavaScript:@"window.__initCaptures && window.__loadCaptures()" completionHandler:nil];
         return;
     }
     if ([msg.name isEqualToString:@"capturedelete"]) {
@@ -384,6 +404,32 @@ static NSISO8601DateFormatter *IsoFormatter(void) {
     }
 
     NSMutableArray *items = [NSMutableArray array];
+
+    // 手记也进同一个列表：没有时间码，标记为 manual
+    NSString *notesPath = [dir stringByAppendingPathComponent:@"notes.json"];
+    NSData *notesData = [NSData dataWithContentsOfFile:notesPath];
+    if (notesData.length > 0) {
+        id parsed = [NSJSONSerialization JSONObjectWithData:notesData options:0 error:NULL];
+        if ([parsed isKindOfClass:[NSArray class]]) {
+            for (NSDictionary *note in (NSArray *)parsed) {
+                if (![note isKindOfClass:[NSDictionary class]]) continue;
+                NSMutableDictionary *cap = [@{
+                    @"note_id": note[@"id"] ?: NewNoteID(),
+                    @"created_at": note[@"createdAt"] ?: @"",
+                    @"source": @"manual",
+                    @"title": note[@"title"] ?: @"",
+                    @"episode": note[@"episode"] ?: [NSNull null],
+                } mutableCopy];
+                // 手记的正文直接随记录一起返回，不走 triage
+                NSMutableDictionary *noteBody = [NSMutableDictionary dictionary];
+                for (NSString *k in @[@"phenomena", @"speculations", @"my_take", @"evidence", @"dims", @"title"]) {
+                    if (note[k] != nil) noteBody[k] = note[k];
+                }
+                [items addObject:@{ @"capture": cap, @"triage": [NSNull null], @"note": noteBody }];
+            }
+        }
+    }
+
     for (NSDictionary *cap in caps) {
         NSString *nid = cap[@"note_id"];
         if (![nid isKindOfClass:[NSString class]]) continue;
@@ -400,6 +446,80 @@ static NSISO8601DateFormatter *IsoFormatter(void) {
     NSData *json = [NSJSONSerialization dataWithJSONObject:@{ @"items": items }
                                                    options:NSJSONWritingSortedKeys error:NULL];
     return [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] ?: @"{\"items\":[]}";
+}
+
+// 删除一条手记
+- (void)deleteManualNote:(NSString *)noteID {
+    NSString *nid = [noteID stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if (nid.length == 0) return;
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"notes.json"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    if (data.length == 0) return;
+    id parsed = [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL];
+    if (![parsed isKindOfClass:[NSArray class]]) return;
+    NSMutableArray *kept = [NSMutableArray array];
+    for (NSDictionary *row in (NSArray *)parsed) {
+        if ([row isKindOfClass:[NSDictionary class]] && [nid isEqual:row[@"id"]]) continue;
+        [kept addObject:row];
+    }
+    NSData *json = [NSJSONSerialization dataWithJSONObject:kept options:NSJSONWritingSortedKeys error:NULL];
+    [json writeToFile:path options:NSDataWritingAtomic error:NULL];
+}
+
+// 更新一条手记（保持 notes.json 原有格式：标签仍是中文）
+- (void)updateManualNote:(NSString *)text {
+    id obj = [NSJSONSerialization JSONObjectWithData:[text dataUsingEncoding:NSUTF8StringEncoding]
+                                            options:0 error:NULL];
+    if (![obj isKindOfClass:[NSDictionary class]]) return;
+    NSString *nid = obj[@"id"];
+    if (![nid isKindOfClass:[NSString class]]) return;
+
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"notes.json"];
+    NSMutableArray *notes = [NSMutableArray array];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    if (data.length > 0) {
+        id parsed = [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL];
+        if ([parsed isKindOfClass:[NSArray class]]) notes = [parsed mutableCopy];
+    }
+
+    for (NSUInteger i = 0; i < notes.count; i++) {
+        NSDictionary *row = notes[i];
+        if (![row isKindOfClass:[NSDictionary class]]) continue;
+        if (![nid isEqual:row[@"id"]]) continue;
+        NSMutableDictionary *updated = [row mutableCopy];
+        for (NSString *k in @[@"title", @"phenomena", @"speculations", @"my_take", @"evidence", @"dims"]) {
+            if (obj[k] != nil) updated[k] = obj[k];
+        }
+        notes[i] = updated;
+        break;
+    }
+
+    NSData *json = [NSJSONSerialization dataWithJSONObject:notes options:NSJSONWritingSortedKeys error:NULL];
+    [json writeToFile:path options:NSDataWritingAtomic error:NULL];
+}
+
+// 新建一条手记（空壳），落 notes.json
+- (void)appendManualNote {
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"notes.json"];
+    NSMutableArray *notes = [NSMutableArray array];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    if (data.length > 0) {
+        id parsed = [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL];
+        if ([parsed isKindOfClass:[NSArray class]]) notes = [parsed mutableCopy];
+    }
+    [notes insertObject:@{
+        @"id": NewNoteID(),
+        @"title": @"",
+        @"episode": @"",
+        @"phenomena": @[],
+        @"speculations": @[],
+        @"my_take": @"",
+        @"evidence": @"",
+        @"dims": @{},
+        @"createdAt": [IsoFormatter() stringFromDate:[NSDate date]],
+    } atIndex:0];
+    NSData *json = [NSJSONSerialization dataWithJSONObject:notes options:NSJSONWritingSortedKeys error:NULL];
+    [json writeToFile:path options:NSDataWritingAtomic error:NULL];
 }
 
 // Mac 侧删除捕获：写自己的墓碑文件，DSH 那边一并读取

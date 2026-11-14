@@ -7,10 +7,7 @@
 import html
 import json
 
-from notes_tab import NOTES_HTML, NOTES_JS
-from captures_tab import CAPTURES_INNER, CAPTURES_JS
-
-NOTES_HTML = NOTES_HTML.replace("<!--CAP_HUB-->", CAPTURES_INNER)
+from captures_tab import CAPTURES_PAGE, CAPTURES_JS
 import scores
 import ja_titles
 import os
@@ -501,7 +498,7 @@ def main():
 <main class="grid" id="view-tv">{cards}</main>
 <main class="grid" id="view-movie" hidden>{movie_cards}</main>
 <main class="grid" id="view-showing" hidden>{showing_cards}</main>
-{NOTES_HTML}
+{CAPTURES_PAGE}
 <script>
   let wd = 0, scoreFilter = 'all';
   const q = document.getElementById('q');
@@ -586,7 +583,7 @@ def main():
       document.getElementById('view-' + id).hidden = (id !== mode);
     }}
     document.getElementById('filters').hidden = mode !== 'tv';
-    document.getElementById('sorts').hidden = mode === 'showing';
+    document.getElementById('sorts').hidden = mode === 'showing' || mode === 'notes';
     if (mode === 'notes' && window.__loadCaptures) window.__loadCaptures();
     apply();
   }});
@@ -616,7 +613,7 @@ def main():
     setTimeout(() => {{ b.textContent = '复制'; b.classList.remove('done'); }}, 1200);
   }});
 </script>
-{NOTES_JS}
+
 {CAPTURES_JS}
 </html>"""
     def _ja_of(zh, en):
