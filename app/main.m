@@ -79,6 +79,7 @@ static NSString *NewNoteID(void) {
     [cfg.userContentController addScriptMessageHandler:self name:@"notesave"];
     [cfg.userContentController addScriptMessageHandler:self name:@"captures"];
     [cfg.userContentController addScriptMessageHandler:self name:@"triagesave"];
+    [cfg.userContentController addScriptMessageHandler:self name:@"capturedelete"];
     self.web = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720) configuration:cfg];
     self.web.navigationDelegate = self;
     vc.view = self.web;
@@ -195,6 +196,11 @@ static NSString *NewNoteID(void) {
         NSString *json = [self capturesJSON];
         NSString *js = [NSString stringWithFormat:@"window.__initCaptures && window.__initCaptures(%@)", json];
         [self.web evaluateJavaScript:js completionHandler:nil];
+        return;
+    }
+    if ([msg.name isEqualToString:@"capturedelete"]) {
+        NSString *t = [msg.body isKindOfClass:[NSString class]] ? msg.body : [msg.body description];
+        if (t.length) [self appendCaptureDeleteMac:t];
         return;
     }
     if ([msg.name isEqualToString:@"triagesave"]) {
@@ -351,7 +357,9 @@ static NSISO8601DateFormatter *IsoFormatter(void) {
     NSArray *caps = [self readJSONLLines:[dir stringByAppendingPathComponent:@"creation-log.jsonl"]];
     NSArray *tri = [self readJSONLLines:[dir stringByAppendingPathComponent:@"triage.jsonl"]];
     NSArray *triMac = [self readJSONLLines:[dir stringByAppendingPathComponent:@"triage-mac.jsonl"]];
-    NSArray *dels = [self readJSONLLines:[dir stringByAppendingPathComponent:@"capture-deletes.jsonl"]];
+    NSArray *dels = [[self readJSONLLines:[dir stringByAppendingPathComponent:@"capture-deletes.jsonl"]]
+                     arrayByAddingObjectsFromArray:
+                     [self readJSONLLines:[dir stringByAppendingPathComponent:@"capture-deletes-mac.jsonl"]]];
 
     NSMutableSet *deleted = [NSMutableSet set];
     for (NSDictionary *row in dels) {
@@ -394,6 +402,25 @@ static NSISO8601DateFormatter *IsoFormatter(void) {
     return [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] ?: @"{\"items\":[]}";
 }
 
+// Mac 侧删除捕获：写自己的墓碑文件，DSH 那边一并读取
+- (void)appendCaptureDeleteMac:(NSString *)noteID {
+    NSString *id = [noteID stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if (id.length == 0) return;
+    NSDictionary *record = @{ @"note_id": id,
+                              @"deleted_at": [IsoFormatter() stringFromDate:[NSDate date]] };
+    NSData *line = [NSJSONSerialization dataWithJSONObject:record options:NSJSONWritingSortedKeys error:NULL];
+    NSString *path = [SupportDir() stringByAppendingPathComponent:@"capture-deletes-mac.jsonl"];
+    NSMutableData *buf = [NSMutableData new];
+    NSData *old = [NSData dataWithContentsOfFile:path];
+    if (old.length > 0) {
+        [buf appendData:old];
+        if (((const char *)old.bytes)[old.length - 1] != '\n') [buf appendBytes:"\n" length:1];
+    }
+    [buf appendData:line];
+    [buf appendBytes:"\n" length:1];
+    [buf writeToFile:path options:NSDataWritingAtomic error:NULL];
+}
+
 // Mac 侧复盘写入自己的文件，DSH 那边按时间戳合并
 - (void)appendTriageMac:(NSString *)text {
     NSData *incoming = [text dataUsingEncoding:NSUTF8StringEncoding];
@@ -402,7 +429,17 @@ static NSISO8601DateFormatter *IsoFormatter(void) {
 
     NSMutableDictionary *record = [obj mutableCopy];
     record[@"schema_version"] = @1;
-    record[@"triaged_at"] = [IsoFormatter() stringFromDate:[NSDate date]];
+    if ([record[@"clear"] boolValue]) {
+        // 清空复盘：追加墓碑，读取时后者覆盖前者
+        record[@"cleared"] = @YES;
+        record[@"cleared_at"] = [IsoFormatter() stringFromDate:[NSDate date]];
+        [record removeObjectForKey:@"clear"];
+        [record removeObjectForKey:@"phenomena"];
+        [record removeObjectForKey:@"speculations"];
+        [record removeObjectForKey:@"my_take"];
+    } else {
+        record[@"triaged_at"] = [IsoFormatter() stringFromDate:[NSDate date]];
+    }
 
     NSData *line = [NSJSONSerialization dataWithJSONObject:record options:NSJSONWritingSortedKeys error:NULL];
     NSString *path = [SupportDir() stringByAppendingPathComponent:@"triage-mac.jsonl"];
