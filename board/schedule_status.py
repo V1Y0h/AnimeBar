@@ -20,10 +20,25 @@ import json
 import os
 import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 UA = {"User-Agent": "dsh-agent/1.0 (personal use)"}
 SUBJECT = "https://api.bgm.tv/v0/subjects/{}"
 EPISODES = "https://api.bgm.tv/v0/episodes?subject_id={}&type=0&limit=100"
+
+ANILIST = "https://graphql.anilist.co"
+ANILIST_QUERY = """
+query ($q: String) {
+  Page(perPage: 3) {
+    media(search: $q, type: ANIME, sort: SEARCH_MATCH) {
+      status
+      episodes
+      title { romaji english native }
+      synonyms
+    }
+  }
+}
+"""
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 CACHE_PATH = os.path.join(ASSETS, "schedule-status.json")
@@ -78,6 +93,51 @@ def _save_cache(entries):
     os.replace(tmp, CACHE_PATH)
 
 
+def _norm(text):
+    """归一化标题：去标点/空白，统一大小写。中日文保留字符。"""
+    if not text:
+        return ""
+    keep = [ch.lower() for ch in text if ch.isalnum()]
+    return "".join(keep)
+
+
+def _anilist_status(names):
+    """按标题查 AniList。只有严格匹配才采用，否则返回 None 交给启发式。"""
+    candidates = [_norm(n) for n in names if n]
+    candidates = [c for c in candidates if len(c) >= 3]
+    if not candidates:
+        return None
+
+    payload = json.dumps({"query": ANILIST_QUERY, "variables": {"q": names[0]}}).encode()
+    req = urllib.request.Request(
+        ANILIST,
+        data=payload,
+        headers={"Content-Type": "application/json", "Accept": "application/json",
+                 "User-Agent": "dsh-agent/1.0 (personal use)"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = json.load(r)
+    except Exception:
+        return None
+
+    media = ((data.get("data") or {}).get("Page") or {}).get("media") or []
+    for m in media:
+        titles = [m.get("title", {}).get(k) for k in ("romaji", "english", "native")]
+        titles += m.get("synonyms") or []
+        for t in titles:
+            n = _norm(t)
+            if not n:
+                continue
+            # 严格匹配：完全相等，或一方包含另一方且长度接近
+            if n in candidates:
+                return {"status": m.get("status"), "episodes": m.get("episodes"), "matched": t}
+            for c in candidates:
+                if (n in c or c in n) and abs(len(n) - len(c)) <= 4 and min(len(n), len(c)) >= 5:
+                    return {"status": m.get("status"), "episodes": m.get("episodes"), "matched": t}
+    return None
+
+
 def _classify_one(subject_id, today):
     sub = _get(SUBJECT.format(subject_id)) or {}
     eps = _get(EPISODES.format(subject_id)) or {}
@@ -86,6 +146,22 @@ def _classify_one(subject_id, today):
     dates = [d for d in (_parse(e.get("airdate")) for e in data) if d]
     dates.sort()
 
+    # 本地分集数据里还有未来日期的集数 → 一定在播，不再听信外部判定
+    # （标题匹配会误中同名作品，之前就这样误藏过还在播的番）
+    if dates and dates[-1] > today:
+        return {"kind": WEEKLY, "source": "local", "total": total, "epcount": len(data),
+                "last": dates[-1].isoformat()}
+
+    # 本地看不出未来集数时，再用 AniList 的片方状态兜底
+    al = _anilist_status([sub.get("name"), sub.get("name_cn")])
+    if al:
+        status = al.get("status")
+        if status in ("FINISHED", "CANCELLED"):
+            return {"kind": ENDED, "source": "anilist", "matched": al.get("matched"),
+                    "total": total, "epcount": len(data)}
+        if status == "RELEASING":
+            return {"kind": WEEKLY, "source": "anilist", "matched": al.get("matched"),
+                    "total": total, "epcount": len(data)}
     if not dates:
         return {"kind": UNKNOWN, "total": total, "epcount": len(data)}
 
@@ -112,12 +188,21 @@ def classify_all(subject_ids, today=None, force=False, log=print):
     else:
         todo = subject_ids if force else missing
         if todo:
-            log(f"   放送状态：查询 {len(todo)} 部（分集数据）")
-        for n, sid in enumerate(todo, 1):
-            entries[str(sid)] = _classify_one(sid, today)
-            if n % 20 == 0:
-                log(f"     {n}/{len(todo)}")
-            time.sleep(0.12)
+            log(f"   放送状态：查询 {len(todo)} 部（分集数据，4 并发）")
+
+        def work(sid):
+            try:
+                return sid, _classify_one(sid, today)
+            except Exception:
+                return sid, {"kind": UNKNOWN}  # 查不到就算未知，保留
+
+        done = 0
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            for sid, result in pool.map(work, todo):
+                entries[str(sid)] = result
+                done += 1
+                if done % 20 == 0:
+                    log(f"     {done}/{len(todo)}")
         _save_cache(entries)
 
     return {i: entries.get(str(i), {}).get("kind", UNKNOWN) for i in subject_ids}
