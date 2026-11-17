@@ -120,7 +120,21 @@ def schedule(items, log=print):
     raw = _get(f"{DB}?Command=ProgLookup&TID={tids}&Range={start}-{end}"
                "&Fields=TID,StTime,Count,ChID&JOIN=SubTitles&STSubTitle=1")
 
+    # 首播频道：同一天可能有重播台，只看主台才不会把星期搞错
+    first_ch = {}
+    try:
+        raw_t = _get(f"{DB}?Command=TitleLookup&TID={tids}&Fields=TID,FirstCh")
+        for t in ET.fromstring(raw_t).iter("TitleItem"):
+            tid = t.findtext("TID")
+            ch = (t.findtext("FirstCh") or "").strip()
+            if tid and ch and ch != "0":
+                first_ch[tid] = ch
+    except Exception:
+        first_ch = {}  # 拿不到就不过滤，退回全部频道
+
     ch_names = channel_names(log=log)
+    # FirstCh 给的是频道名，节目里是 ChID，得反查
+    ch_ids = {name: cid for cid, name in ch_names.items()}
     progs = {}
     root = ET.fromstring(raw)
     for p in root.iter("ProgItem"):
@@ -139,11 +153,22 @@ def schedule(items, log=print):
 
     entries = {}
     for bgm_id, (tid, title) in matched.items():
-        rows = sorted(progs.get(tid, []), key=lambda x: x["st"])
+        all_rows = progs.get(tid, [])
+        main = ch_ids.get(first_ch.get(tid, ""))
+        rows = [r for r in all_rows if r.get("chid") == main] if main else all_rows
+        if not rows:
+            rows = all_rows
+        rows = sorted(rows, key=lambda x: x["st"])
         if not rows:
             continue
+        # 只取「现在之后最近的一场」；窗口里更早的多半是重播或上一集
+        now_key = now.strftime("%Y-%m-%d %H:%M:%S")
+        upcoming = [r for r in rows if r["st"] >= now_key]
+        if not upcoming:
+            continue
+        pick = upcoming[0]
         try:
-            when = datetime.datetime.strptime(rows[0]["st"], "%Y-%m-%d %H:%M:%S")
+            when = datetime.datetime.strptime(pick["st"], "%Y-%m-%d %H:%M:%S")
         except ValueError:
             continue
         # 停播判定：相邻两集间隔超过 8 天，说明中间空过一周
@@ -157,12 +182,21 @@ def schedule(items, log=print):
             if (db - da).days >= 13:
                 gap_week = True
                 break
+        # 与 Bangumi 的星期不一致时不显示：宁可少一行，也不要给两条矛盾信息
+        bgm_wd = None
+        for it in items:
+            if str(it.get("id")) == bgm_id:
+                bgm_wd = it.get("air_weekday")
+                break
+        if bgm_wd and when.isoweekday() != bgm_wd:
+            continue
+
         entries[bgm_id] = {
             "tid": tid,
             "title": title,
             "weekday": when.isoweekday(),
             "time": f"{when.hour:02d}:{when.minute:02d}",
-            "channel": ch_names.get(rows[0]["chid"], ""),
+            "channel": ch_names.get(pick["chid"], ""),
             "skip_week": gap_week,
         }
 
