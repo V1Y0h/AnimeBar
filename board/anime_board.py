@@ -9,6 +9,7 @@ import json
 
 from captures_tab import CAPTURES_PAGE, CAPTURES_JS
 import schedule_status
+import madb
 import syoboi
 import scores
 import ja_titles
@@ -389,6 +390,24 @@ def showing_card(m):
     </article>"""
 
 
+def archive_card(w):
+    """MADB 的一条早期影像软件。数据来自文化庁「MADB Lab」，页脚有出处声明。"""
+    year = (w.get("date") or "")[:4]
+    title = w.get("title") or ""
+    pub = w.get("publisher") or ""
+    url = w.get("url") or ""
+    return f"""<article class="card">
+      <div class="cover"><div class="ph"><span>{esc(title[:2])}</span></div></div>
+      <div class="body">
+        <h3 title="{esc(title)}"><span class="l-zh">{esc(title)}</span><span class="l-en">{esc(title)}</span><span class="l-ja">{esc(title)}</span></h3>
+        <p class="meta">{esc(year)} · {esc(pub)}</p>
+        <div class="acts">
+          <a class="detail" href="{esc(url)}" target="_blank" rel="noopener">{L('MADB 条目','MADB record')}</a>
+        </div>
+      </div>
+    </article>"""
+
+
 def main():
     data = fetch()
     items, seen = [], set()
@@ -430,6 +449,11 @@ def main():
     except Exception:
         showings = []
     showing_cards = "\n".join(showing_card(m) for m in showings)
+    try:
+        archive_cards = "\n".join(archive_card(w) for w in madb.early_works())
+    except Exception as e:
+        print(f"   MADB 档案取不到，跳过：{e}")
+        archive_cards = '<p class="empty" style="grid-column:1/-1">—</p>' 
     en_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     tabs = "".join(
         f'<button data-wd="{i}">{L(d, en_days[i-1])}</button>'
@@ -519,6 +543,7 @@ def main():
     <button data-mode="movie">{L('剧场版','Films')}</button>
     <button data-mode="showing">{L('上映中','In cinemas')}</button>
     <button data-mode="notes">{L('记录','Notes')}</button>
+    <button data-mode="archive">{L('档案','Archive')}</button>
     <span class="sep"></span>
     <span id="filters" class="tools">
       <button data-wd="0" class="on">{L('全部','All')}</button>{tabs}
@@ -538,6 +563,9 @@ def main():
 <main class="grid" id="view-tv">{cards}</main>
 <main class="grid" id="view-movie" hidden>{movie_cards}</main>
 <main class="grid" id="view-showing" hidden>{showing_cards}</main>
+<main class="grid" id="view-archive" hidden>{archive_cards}
+  <p class="meta" style="grid-column:1/-1;margin-top:8px">{L(madb.ATTRIBUTION_ZH, madb.ATTRIBUTION_EN)}</p>
+</main>
 {CAPTURES_PAGE}
 <script>
   // 运行时异常不再静默：写到宿主的日志，界面上看不出的错也能查
@@ -628,7 +656,7 @@ def main():
   document.querySelectorAll('button[data-mode]').forEach(b => b.onclick = () => {{
     const mode = b.dataset.mode;
     document.querySelectorAll('button[data-mode]').forEach(x => x.classList.toggle('on', x === b));
-    for (const id of ['tv', 'movie', 'showing', 'notes']) {{
+    for (const id of ['tv', 'movie', 'showing', 'notes', 'archive']) {{
       document.getElementById('view-' + id).hidden = (id !== mode);
     }}
     document.getElementById('filters').hidden = mode !== 'tv';
