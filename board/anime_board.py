@@ -108,10 +108,17 @@ def romanize(text):
         return text
     parts = [w for w in re.split(r"[\s　・:：~]+", text) if w]
     if has_kana(text):
+        # _kks.convert 自带分词：词与词之间加空格，整串罗马字才不会糊成一坨
         out = []
         for w in parts:
-            r = "".join(x["hepburn"] for x in _kks.convert(w)).strip() if _kks else w
-            out.append(r[:1].upper() + r[1:] if r else r)
+            if not _kks:
+                out.append(w)
+                continue
+            words = [x["hepburn"] for x in _kks.convert(w) if x["hepburn"]]
+            # 助词小写，其余词首字母大写：Jakku to Mame no Ki
+            PARTICLES = {"to", "no", "wa", "ga", "wo", "ni", "he", "de", "ya", "ka", "mo"}
+            words = [w if w in PARTICLES else w[:1].upper() + w[1:] for w in words]
+            out.append(" ".join(words))
         return " ".join(out).strip()
     if pinyin is None:
         return text
@@ -399,7 +406,9 @@ def archive_card(w):
     pub = w.get("publisher") or ""
     url = w.get("url") or ""
     cover = w.get("cover") or ""
-    cover_html = (f'<img loading="lazy" src="{esc(cover)}" alt="">'
+    # 断网或图源挂了时回落到胶片占位，别留一个裂图
+    cover_html = (f'<img loading="lazy" src="{esc(cover)}" alt="" '
+                  f"onerror=\"this.parentNode.innerHTML='<div class=&quot;ph&quot;><span>▤</span></div>'\">"
                   if cover else '<div class="ph"><span>▤</span></div>')
     return f"""<article class="card">
       <div class="cover">{cover_html}</div>
@@ -549,7 +558,7 @@ def main():
     <button data-mode="tv" class="on">{L('新番','TV')}</button>
     <button data-mode="movie">{L('剧场版','Films')}</button>
     <button data-mode="showing">{L('上映中','In cinemas')}</button>
-    <button data-mode="archive">{L('档案','Archive')}</button>
+    <button data-mode="archive"><span class="l-zh">档案</span><span class="l-en">Archive</span><span class="l-ja">アーカイブ</span></button>
     <button data-mode="notes">{L('记录','Notes')}</button>
     <span class="sep"></span>
     <span id="filters" class="tools">
