@@ -108,7 +108,7 @@ BG_API = "https://api.bgm.tv/v0/search/subjects?limit=3"
 
 
 def _search_cover(title):
-    """用 Bangumi 搜同名条目取封面。标题对不上就返回空，不硬套。"""
+    """用 Bangumi 搜同名条目，取封面与中/日文标题。对不上就返回空，不硬套。"""
     import urllib.request as u
 
     body = json.dumps({"keyword": title, "filter": {"type": [2]}}).encode()
@@ -126,17 +126,21 @@ def _search_cover(title):
         return "".join(c for c in (t or "") if c.isalnum())
 
     want = norm(title)
-    best = ""
+    best = {}
     for it in (data.get("data") or []):
-        img = (it.get("images") or {}).get("common") or ""
-        if not img:
+        entry = {
+            "cover": (it.get("images") or {}).get("common") or "",
+            "name_cn": it.get("name_cn") or "",
+            "name": it.get("name") or "",
+        }
+        if not entry["cover"]:
             continue
         for key in ("name", "name_cn"):
             got = norm(it.get(key))
             if got and want and (got == want or got in want or want in got):
-                return img
+                return entry
         if not best:
-            best = img  # 没有严格匹配时用第一条有图的兜底
+            best = entry  # 没有严格匹配时用第一条有图的兜底
     return best
 
 
@@ -155,13 +159,20 @@ def attach_covers(works, log=print):
     if todo:
         log(f"   MADB：补封面 {len(todo)} 条…")
         with ThreadPoolExecutor(max_workers=4) as pool:
-            for title, cover in zip(todo, pool.map(_search_cover, todo)):
-                cache[title] = cover
+            for title, entry in zip(todo, pool.map(_search_cover, todo)):
+                cache[title] = entry
         tmp = COVERS + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump({"fetched_at": int(time.time()), "covers": cache}, f, ensure_ascii=False)
         os.replace(tmp, COVERS)
 
     for w in works:
-        w["cover"] = cache.get(w["title"], "")
+        got = cache.get(w["title"])
+        # 兼容旧缓存（只存了封面 URL 字符串）
+        if isinstance(got, str):
+            got = {"cover": got, "name_cn": "", "name": ""}
+        got = got or {}
+        w["cover"] = got.get("cover", "")
+        w["bgm_cn"] = got.get("name_cn", "")
+        w["bgm_name"] = got.get("name", "")
     return works

@@ -391,18 +391,24 @@ def showing_card(m):
 
 
 def archive_card(w):
-    """MADB 的一条早期影像软件。数据来自文化庁「MADB Lab」，页脚有出处声明。"""
+    """MADB 的一条早期影像软件。中/英/日三语标题，方便跨语言找番。"""
+    ja = w.get("title") or ""
+    zh = w.get("bgm_cn") or ja                      # 没有中文就用日文原文
+    en = english_title(zh, ja) or romanize(ja)      # 没有英文就用罗马音
     year = (w.get("date") or "")[:4]
-    title = w.get("title") or ""
     pub = w.get("publisher") or ""
     url = w.get("url") or ""
+    cover = w.get("cover") or ""
+    cover_html = (f'<img loading="lazy" src="{esc(cover)}" alt="">'
+                  if cover else '<div class="ph"><span>▤</span></div>')
     return f"""<article class="card">
-      <div class="cover">{f'<img loading="lazy" src="{esc(w["cover"])}" alt="">' if w.get("cover") else '<div class="ph"><span>▤</span></div>'}</div>
+      <div class="cover">{cover_html}</div>
       <div class="body">
-        <h3 title="{esc(title)}"><span class="l-zh">{esc(title)}</span><span class="l-en">{esc(title)}</span><span class="l-ja">{esc(title)}</span></h3>
+        <h3 title="{esc(ja)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(ja)}</span></h3>
         <p class="meta">{esc(year)} · {esc(pub)}</p>
         <div class="acts">
-          <a class="detail" href="{esc(url)}" target="_blank" rel="noopener">{L('MADB 条目','MADB record')}</a>
+          <a class="detail" href="{esc(url)}" target="_blank" rel="noopener"><span class="l-zh">MADB 条目</span><span class="l-en">MADB record</span><span class="l-ja">MADB レコード</span></a>
+          <button class="cp" data-name="{esc(ja)}"><span class="l-zh">复制日文名</span><span class="l-en">Copy title</span><span class="l-ja">題名をコピー</span></button>
         </div>
       </div>
     </article>"""
@@ -565,7 +571,7 @@ def main():
 <main class="grid" id="view-movie" hidden>{movie_cards}</main>
 <main class="grid" id="view-showing" hidden>{showing_cards}</main>
 <main class="grid" id="view-archive" hidden>{archive_cards}
-  <p class="meta" style="grid-column:1/-1;margin-top:8px">{L(madb.ATTRIBUTION_ZH, madb.ATTRIBUTION_EN)}</p>
+  <p class="meta" style="grid-column:1/-1;margin-top:8px"><span class="l-zh">{madb.ATTRIBUTION_ZH}</span><span class="l-en">{madb.ATTRIBUTION_EN}</span><span class="l-ja">{madb.ATTRIBUTION_EN}</span></p>
 </main>
 {CAPTURES_PAGE}
 <script>
