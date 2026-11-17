@@ -664,6 +664,12 @@ def main():
     const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openurl;
     if (h) {{ h.postMessage(u); }} else {{ window.open(u, '_blank'); }}
   }}));
+  // 档案卡：直接打开 MADB 条目，不按语言改写目标
+  document.querySelectorAll('a.madb').forEach(a => a.addEventListener('click', (e) => {{
+    e.preventDefault();
+    const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openurl;
+    if (h) {{ h.postMessage(a.href); }} else {{ window.open(a.href, '_blank'); }}
+  }}));
   document.querySelectorAll('button[data-sort]').forEach(b => b.onclick = () => {{
     sortKey = b.dataset.sort;
     document.querySelectorAll('button[data-sort]').forEach(x => x.classList.toggle('on', x === b));
