@@ -416,7 +416,7 @@ def archive_card(w):
         <h3 title="{esc(ja)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(ja)}</span></h3>
         <p class="meta">{esc(year)} · {esc(pub)}</p>
         <div class="acts">
-          <a class="detail" href="{esc(url)}" target="_blank" rel="noopener"><span class="l-zh">MADB 条目</span><span class="l-en">MADB record</span><span class="l-ja">MADB レコード</span></a>
+          <a class="madb" href="{esc(url)}" target="_blank" rel="noopener"><span class="l-zh">MADB 条目</span><span class="l-en">MADB record</span><span class="l-ja">MADB レコード</span></a>
           <button class="cp" data-name="{esc(ja)}"><span class="l-zh">复制日文名</span><span class="l-en">Copy title</span><span class="l-ja">題名をコピー</span></button>
         </div>
       </div>
