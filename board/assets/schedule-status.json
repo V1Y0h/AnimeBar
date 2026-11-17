@@ -1,0 +1,666 @@
+{
+ "checked_at": 1794906102,
+ "entries": {
+  "632061": {
+   "kind": "weekly",
+   "total": 4,
+   "epcount": 4,
+   "last": "2026-11-20"
+  },
+  "975": {
+   "kind": "weekly",
+   "total": 1191,
+   "epcount": 100,
+   "last": "2002-12-09"
+  },
+  "567896": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-12-26"
+  },
+  "554779": {
+   "kind": "weekly",
+   "total": 16,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "665390": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-12-24"
+  },
+  "593863": {
+   "kind": "weekly",
+   "total": 6,
+   "epcount": 6,
+   "last": "2026-12-04"
+  },
+  "899": {
+   "kind": "weekly",
+   "total": 1350,
+   "epcount": 100,
+   "last": "1998-05-11"
+  },
+  "637802": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "555605": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "568244": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-18"
+  },
+  "705980": {
+   "kind": "ended",
+   "total": 52,
+   "epcount": 52,
+   "last": "2026-10-24"
+  },
+  "700678": {
+   "kind": "unknown",
+   "total": 8,
+   "epcount": 8
+  },
+  "507820": {
+   "kind": "weekly",
+   "total": 16,
+   "epcount": 16,
+   "last": "2027-01-02"
+  },
+  "449346": {
+   "kind": "weekly",
+   "total": 16,
+   "epcount": 16,
+   "last": "2026-11-29"
+  },
+  "537738": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-25"
+  },
+  "698981": {
+   "kind": "batch",
+   "total": 20,
+   "epcount": 20,
+   "last": "2026-10-02"
+  },
+  "665014": {
+   "kind": "unknown",
+   "total": 0,
+   "epcount": 0
+  },
+  "623249": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-27"
+  },
+  "635258": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-27"
+  },
+  "624085": {
+   "kind": "weekly",
+   "total": 25,
+   "epcount": 25,
+   "last": "2027-03-23"
+  },
+  "622288": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-17"
+  },
+  "715907": {
+   "kind": "ended",
+   "total": 1,
+   "epcount": 1,
+   "last": "2026-10-25"
+  },
+  "412008": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-23"
+  },
+  "624923": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-21"
+  },
+  "538631": {
+   "kind": "ended",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-10-30"
+  },
+  "707667": {
+   "kind": "weekly",
+   "total": 25,
+   "epcount": 24,
+   "last": "2027-01-01"
+  },
+  "616808": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "511936": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-21"
+  },
+  "646154": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-23"
+  },
+  "634210": {
+   "kind": "weekly",
+   "total": 15,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "548156": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-27"
+  },
+  "688797": {
+   "kind": "ended",
+   "total": 6,
+   "epcount": 6,
+   "last": "2026-11-08"
+  },
+  "418229": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-21"
+  },
+  "456078": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-12-26"
+  },
+  "630160": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "664395": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-27"
+  },
+  "625799": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-22"
+  },
+  "708080": {
+   "kind": "ended",
+   "total": 1,
+   "epcount": 1,
+   "last": "2026-10-05"
+  },
+  "502123": {
+   "kind": "weekly",
+   "total": 23,
+   "epcount": 21,
+   "last": "2027-02-24"
+  },
+  "577237": {
+   "kind": "unknown",
+   "total": 1,
+   "epcount": 1
+  },
+  "716967": {
+   "kind": "weekly",
+   "total": 6,
+   "epcount": 6,
+   "last": "2099-01-01"
+  },
+  "499474": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-12-25"
+  },
+  "701310": {
+   "kind": "batch",
+   "total": 6,
+   "epcount": 6,
+   "last": "2026-10-02"
+  },
+  "559080": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 10,
+   "last": "2026-12-19"
+  },
+  "702192": {
+   "kind": "unknown",
+   "total": 10,
+   "epcount": 10
+  },
+  "632817": {
+   "kind": "unknown",
+   "total": 12,
+   "epcount": 12
+  },
+  "712000": {
+   "kind": "weekly",
+   "total": 26,
+   "epcount": 26,
+   "last": "2027-04-11"
+  },
+  "636023": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "664389": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-27"
+  },
+  "486456": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-23"
+  },
+  "536270": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-12-27"
+  },
+  "551304": {
+   "kind": "batch",
+   "total": 5,
+   "epcount": 3,
+   "last": "2026-10-25"
+  },
+  "593565": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-22"
+  },
+  "563508": {
+   "kind": "weekly",
+   "total": 26,
+   "epcount": 26,
+   "last": "2027-03-26"
+  },
+  "542007": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-12-26"
+  },
+  "617273": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "657084": {
+   "kind": "weekly",
+   "total": 20,
+   "epcount": 20,
+   "last": "2027-02-13"
+  },
+  "589775": {
+   "kind": "weekly",
+   "total": 15,
+   "epcount": 13,
+   "last": "2026-12-27"
+  },
+  "590553": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-24"
+  },
+  "654294": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-24"
+  },
+  "617948": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-18"
+  },
+  "586255": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-26"
+  },
+  "605533": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "513878": {
+   "kind": "batch",
+   "total": 12,
+   "epcount": 10,
+   "last": "2026-10-20"
+  },
+  "657656": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-18"
+  },
+  "621073": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-27"
+  },
+  "471844": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-23"
+  },
+  "710874": {
+   "kind": "ended",
+   "total": 10,
+   "epcount": 10,
+   "last": "2026-11-02"
+  },
+  "634708": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-22"
+  },
+  "393010": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 13,
+   "last": "2026-12-30"
+  },
+  "657778": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-23"
+  },
+  "568525": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-26"
+  },
+  "636512": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "636058": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "656083": {
+   "kind": "weekly",
+   "total": 9,
+   "epcount": 8,
+   "last": "2026-11-29"
+  },
+  "621108": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-25"
+  },
+  "634587": {
+   "kind": "weekly",
+   "total": 13,
+   "epcount": 12,
+   "last": "2026-12-28"
+  },
+  "713219": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-28"
+  },
+  "704737": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-24"
+  },
+  "708612": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "716251": {
+   "kind": "unknown",
+   "total": 1,
+   "epcount": 1
+  },
+  "614640": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-28"
+  },
+  "505550": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-29"
+  },
+  "638081": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "584847": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 11,
+   "last": "2026-12-22"
+  },
+  "541538": {
+   "kind": "weekly",
+   "total": 23,
+   "epcount": 23,
+   "last": "2027-03-09"
+  },
+  "544378": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-22"
+  },
+  "701782": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 12,
+   "last": "2026-12-18"
+  },
+  "596771": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "698032": {
+   "kind": "weekly",
+   "total": 8,
+   "epcount": 8,
+   "last": "2026-11-22"
+  },
+  "613256": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-26"
+  },
+  "647220": {
+   "kind": "weekly",
+   "total": 24,
+   "epcount": 12,
+   "last": "2026-12-20"
+  },
+  "717907": {
+   "kind": "unknown",
+   "total": 1,
+   "epcount": 1
+  },
+  "606716": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "390200": {
+   "kind": "ended",
+   "total": 1,
+   "epcount": 1,
+   "last": "2026-10-05"
+  },
+  "573707": {
+   "kind": "unknown",
+   "total": 15,
+   "epcount": 15
+  },
+  "688204": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-11-13"
+  },
+  "576783": {
+   "kind": "weekly",
+   "total": 14,
+   "epcount": 14,
+   "last": "2026-12-17"
+  },
+  "637206": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "498559": {
+   "kind": "unknown",
+   "total": 0,
+   "epcount": 0
+  },
+  "713654": {
+   "kind": "unknown",
+   "total": 52,
+   "epcount": 52
+  },
+  "716367": {
+   "kind": "weekly",
+   "total": 3,
+   "epcount": 3,
+   "last": "2026-11-24"
+  },
+  "709326": {
+   "kind": "unknown",
+   "total": 1,
+   "epcount": 1
+  },
+  "701779": {
+   "kind": "weekly",
+   "total": 6,
+   "epcount": 6,
+   "last": "2026-11-11"
+  },
+  "709475": {
+   "kind": "weekly",
+   "total": 10,
+   "epcount": 10,
+   "last": "2026-12-23"
+  },
+  "712926": {
+   "kind": "weekly",
+   "total": 40,
+   "epcount": 40,
+   "last": "2027-02-28"
+  },
+  "700127": {
+   "kind": "ended",
+   "total": 1,
+   "epcount": 1,
+   "last": "2026-10-01"
+  },
+  "654678": {
+   "kind": "weekly",
+   "total": 7,
+   "epcount": 7,
+   "last": "2026-11-14"
+  },
+  "694622": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-19"
+  },
+  "701565": {
+   "kind": "ended",
+   "total": 1,
+   "epcount": 1,
+   "last": "2026-10-03"
+  },
+  "712500": {
+   "kind": "ended",
+   "total": 3,
+   "epcount": 3,
+   "last": "2026-11-01"
+  },
+  "646586": {
+   "kind": "weekly",
+   "total": 12,
+   "epcount": 12,
+   "last": "2026-12-19"
+  }
+ }
+}

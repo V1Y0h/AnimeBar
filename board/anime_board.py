@@ -8,6 +8,7 @@ import html
 import json
 
 from captures_tab import CAPTURES_PAGE, CAPTURES_JS
+import schedule_status
 import scores
 import ja_titles
 import os
@@ -377,6 +378,16 @@ def main():
             seen.add(it["id"])
             items.append(it)
     items.sort(key=lambda x: -((x.get("rating") or {}).get("score", 0) or 0))
+
+    # Bangumi 的放送表不会摘掉已完结/一次性放出的作品，这里按分集数据过滤
+    print("→ 判定放送状态…")
+    try:
+        kept, dropped = schedule_status.drop_finished(items)
+        if dropped:
+            print(f"   过滤 {len(dropped)} 部（已完结/一次性放出）")
+        items = kept
+    except Exception as e:
+        print(f"   放送状态判定失败，保留全部：{e}")
 
     today_wd = date.today().isoweekday()
     cards = "\n".join(card(i) for i in items)
