@@ -9,6 +9,7 @@ import json
 
 from captures_tab import CAPTURES_PAGE, CAPTURES_JS
 import schedule_status
+import syoboi
 import scores
 import ja_titles
 import os
@@ -132,6 +133,7 @@ def titles(cn, orig):
 UA = "dsh-agent/1.0 (personal use)"
 DAYS = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
 EN_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+JA_DAYS = ["月", "火", "水", "木", "金", "土", "日"]
 
 
 def fetch():
@@ -178,6 +180,24 @@ def card(it):
     imgs = it.get("images") or {}
     img = imgs.get("large") or imgs.get("common") or imgs.get("medium") or ""
     wd = it.get("air_weekday", 0)
+
+    # しょぼいカレンダー 的精确放送时间（匹配不上就整行不显示）
+    syo = it.get("_syo")
+    syo_line = ""
+    if syo:
+        sw = syo.get("weekday", 0)
+        if 1 <= sw <= 7:
+            # 三语都显式写出，避免下面的后处理拿英文冒充日文
+            parts = ('<span class="l-zh">%s %s</span><span class="l-en">%s %s</span>'
+                     '<span class="l-ja">%s %s</span>') % (
+                         DAYS[sw-1], syo["time"], EN_DAYS[sw-1], syo["time"],
+                         JA_DAYS[sw-1], syo["time"])
+            if syo.get("channel"):
+                parts += " · " + esc(syo["channel"])
+            if syo.get("skip_week"):
+                parts += (' · <span class="l-zh">有停播</span><span class="l-en">breaks</span>'
+                          '<span class="l-ja">休止あり</span>')
+            syo_line = '<p class="meta syo">' + parts + "</p>"
     url = (it.get("url") or "").replace("http://", "https://") or f"https://bgm.tv/subject/{it.get('id')}"
     air = it.get("air_date") or ""
     img = img.replace("http://", "https://") or GHOST
@@ -194,6 +214,7 @@ def card(it):
       <div class="body">
         <h3 title="{esc(orig)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(ja_titles.lookup(orig))}</span></h3>
         <p class="meta">{L(DAYS[wd-1], EN_DAYS[wd-1]) if 1 <= wd <= 7 else '—'} · {esc(air)} · {total}{L(' 人评',' ratings')}</p>
+        {syo_line}
         <div class="acts">
           <a class="detail" href="{esc(url)}" data-bgm="{esc(url)}" data-title="{esc(name)}" data-en="{esc(en)}" data-ja="{esc(ja_titles.lookup(orig))}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(name)}">{L('复制','Copy')}</button>
@@ -388,6 +409,14 @@ def main():
         items = kept
     except Exception as e:
         print(f"   放送状态判定失败，保留全部：{e}")
+
+    print("→ 取精确放送时间…")
+    try:
+        sched = syoboi.schedule(items)
+        for it in items:
+            it["_syo"] = sched.get(str(it["id"]))
+    except Exception as e:
+        print(f"   放送时间取不到，跳过：{e}")
 
     today_wd = date.today().isoweekday()
     cards = "\n".join(card(i) for i in items)
