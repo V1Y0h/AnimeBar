@@ -1,72 +1,62 @@
 {
- "checked_at": 1794917756,
+ "checked_at": 1794919255,
  "entries": {
   "632061": {
    "kind": "weekly",
-   "source": "local",
    "total": 4,
    "epcount": 4,
    "last": "2026-11-20"
   },
   "975": {
    "kind": "weekly",
-   "source": "anilist",
-   "matched": "ONE PIECE",
    "total": 1191,
-   "epcount": 100
+   "epcount": 100,
+   "last": "2002-12-09"
   },
   "567896": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 13,
    "last": "2026-12-26"
   },
   "554779": {
    "kind": "weekly",
-   "source": "local",
    "total": 16,
    "epcount": 12,
    "last": "2026-12-19"
   },
   "665390": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 13,
    "last": "2026-12-24"
   },
   "593863": {
    "kind": "weekly",
-   "source": "local",
    "total": 6,
    "epcount": 6,
    "last": "2026-12-04"
   },
   "899": {
    "kind": "weekly",
-   "source": "anilist",
-   "matched": "名探偵コナン",
    "total": 1350,
-   "epcount": 100
+   "epcount": 100,
+   "last": "1998-05-11"
   },
   "637802": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-19"
   },
   "555605": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "568244": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-18"
@@ -84,21 +74,18 @@
   },
   "507820": {
    "kind": "weekly",
-   "source": "local",
    "total": 16,
    "epcount": 16,
    "last": "2027-01-02"
   },
   "449346": {
    "kind": "weekly",
-   "source": "local",
    "total": 16,
    "epcount": 16,
    "last": "2026-11-29"
   },
   "537738": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-25"
@@ -116,28 +103,24 @@
   },
   "623249": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-27"
   },
   "635258": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-27"
   },
   "624085": {
    "kind": "weekly",
-   "source": "local",
    "total": 25,
    "epcount": 25,
    "last": "2027-03-23"
   },
   "622288": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-17"
@@ -150,14 +133,12 @@
   },
   "412008": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-23"
   },
   "624923": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-21"
@@ -170,42 +151,36 @@
   },
   "707667": {
    "kind": "weekly",
-   "source": "local",
    "total": 25,
    "epcount": 24,
    "last": "2027-01-01"
   },
   "616808": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-19"
   },
   "511936": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-21"
   },
   "646154": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-23"
   },
   "634210": {
    "kind": "weekly",
-   "source": "local",
    "total": 15,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "548156": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-27"
@@ -218,35 +193,30 @@
   },
   "456078": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 13,
    "last": "2026-12-26"
   },
   "630160": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "664395": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-27"
   },
   "418229": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-21"
   },
   "625799": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-22"
@@ -259,28 +229,23 @@
   },
   "502123": {
    "kind": "weekly",
-   "source": "local",
    "total": 23,
    "epcount": 21,
    "last": "2027-02-24"
   },
   "577237": {
-   "kind": "ended",
-   "source": "anilist",
-   "matched": "仙逆剧场版 弑仙之战",
+   "kind": "unknown",
    "total": 1,
    "epcount": 1
   },
   "716967": {
    "kind": "weekly",
-   "source": "local",
    "total": 6,
    "epcount": 6,
    "last": "2099-01-01"
   },
   "499474": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 13,
    "last": "2026-12-25"
@@ -293,7 +258,6 @@
   },
   "559080": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 10,
    "last": "2026-12-19"
@@ -310,147 +274,126 @@
   },
   "712000": {
    "kind": "weekly",
-   "source": "local",
    "total": 26,
    "epcount": 26,
    "last": "2027-04-11"
   },
   "636023": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "664389": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-27"
   },
   "486456": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-23"
   },
   "536270": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 13,
    "last": "2026-12-27"
   },
   "551304": {
-   "kind": "ended",
-   "source": "anilist",
-   "matched": "わたしの幸せな結婚 特別篇",
+   "kind": "batch",
    "total": 5,
-   "epcount": 3
+   "epcount": 3,
+   "last": "2026-10-25"
   },
   "593565": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-22"
   },
   "563508": {
    "kind": "weekly",
-   "source": "local",
    "total": 26,
    "epcount": 26,
    "last": "2027-03-26"
   },
   "542007": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 13,
    "last": "2026-12-26"
   },
   "617273": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-19"
   },
   "657084": {
    "kind": "weekly",
-   "source": "local",
    "total": 20,
    "epcount": 20,
    "last": "2027-02-13"
   },
   "589775": {
    "kind": "weekly",
-   "source": "local",
    "total": 15,
    "epcount": 13,
    "last": "2026-12-27"
   },
   "590553": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-24"
   },
   "654294": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-24"
   },
   "617948": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-18"
   },
   "586255": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-26"
   },
   "605533": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "513878": {
-   "kind": "ended",
-   "source": "anilist",
-   "matched": "Cyberpunk: Edgerunners 2",
+   "kind": "batch",
    "total": 12,
-   "epcount": 10
+   "epcount": 10,
+   "last": "2026-10-20"
   },
   "657656": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-18"
   },
   "621073": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-27"
   },
   "471844": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-23"
@@ -463,84 +406,72 @@
   },
   "634708": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-22"
   },
   "657778": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-23"
   },
   "568525": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-26"
   },
   "636512": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-19"
   },
   "636058": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "656083": {
    "kind": "weekly",
-   "source": "local",
    "total": 9,
    "epcount": 8,
    "last": "2026-11-29"
   },
   "393010": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 13,
    "last": "2026-12-30"
   },
   "621108": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-25"
   },
   "634587": {
    "kind": "weekly",
-   "source": "local",
    "total": 13,
    "epcount": 12,
    "last": "2026-12-28"
   },
   "713219": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-28"
   },
   "704737": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-24"
   },
   "708612": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-20"
@@ -552,77 +483,66 @@
   },
   "614640": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-28"
   },
   "505550": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-29"
   },
   "638081": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "584847": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 11,
    "last": "2026-12-22"
   },
   "541538": {
    "kind": "weekly",
-   "source": "local",
    "total": 23,
    "epcount": 23,
    "last": "2027-03-09"
   },
   "544378": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-22"
   },
   "701782": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 12,
    "last": "2026-12-18"
   },
   "596771": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-20"
   },
   "698032": {
    "kind": "weekly",
-   "source": "local",
    "total": 8,
    "epcount": 8,
    "last": "2026-11-22"
   },
   "613256": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-26"
   },
   "647220": {
    "kind": "weekly",
-   "source": "local",
    "total": 24,
    "epcount": 12,
    "last": "2026-12-20"
@@ -634,7 +554,6 @@
   },
   "606716": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-19"
@@ -652,21 +571,18 @@
   },
   "688204": {
    "kind": "weekly",
-   "source": "anilist",
-   "matched": "ゆうさんち！from 遊ハち",
    "total": 12,
-   "epcount": 12
+   "epcount": 12,
+   "last": "2026-11-13"
   },
   "576783": {
    "kind": "weekly",
-   "source": "local",
    "total": 14,
    "epcount": 14,
    "last": "2026-12-17"
   },
   "637206": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-19"
@@ -683,7 +599,6 @@
   },
   "716367": {
    "kind": "weekly",
-   "source": "local",
    "total": 3,
    "epcount": 3,
    "last": "2026-11-24"
@@ -701,14 +616,12 @@
   },
   "709475": {
    "kind": "weekly",
-   "source": "local",
    "total": 10,
    "epcount": 10,
    "last": "2026-12-23"
   },
   "712926": {
    "kind": "weekly",
-   "source": "local",
    "total": 40,
    "epcount": 40,
    "last": "2027-02-28"
@@ -727,7 +640,6 @@
   },
   "694622": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-19"
@@ -746,7 +658,6 @@
   },
   "646586": {
    "kind": "weekly",
-   "source": "local",
    "total": 12,
    "epcount": 12,
    "last": "2026-12-19"
