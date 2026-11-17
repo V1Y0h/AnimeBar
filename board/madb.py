@@ -14,6 +14,7 @@ import os
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 ENDPOINT = "https://mediaarts-db.artmuseums.go.jp/sparql"
 UA = {"User-Agent": "dsh-agent/1.0 (personal use)", "Accept": "application/sparql-results+json"}
@@ -99,4 +100,68 @@ def early_works(log=print):
         json.dump({"fetched_at": int(time.time()), "works": works}, f, ensure_ascii=False)
     os.replace(tmp, CACHE)
     log(f"   MADB：{len(works)} 条已缓存")
+    return works
+
+
+COVERS = os.path.join(ASSETS, "madb-covers.json")
+BG_API = "https://api.bgm.tv/v0/search/subjects?limit=3"
+
+
+def _search_cover(title):
+    """用 Bangumi 搜同名条目取封面。标题对不上就返回空，不硬套。"""
+    import urllib.request as u
+
+    body = json.dumps({"keyword": title, "filter": {"type": [2]}}).encode()
+    req = u.Request(BG_API, data=body, headers={
+        "content-type": "application/json",
+        "user-agent": "dsh-agent/1.0 (personal use)",
+    })
+    try:
+        with u.urlopen(req, timeout=20) as r:
+            data = json.load(r)
+    except Exception:
+        return ""
+
+    def norm(t):
+        return "".join(c for c in (t or "") if c.isalnum())
+
+    want = norm(title)
+    best = ""
+    for it in (data.get("data") or []):
+        img = (it.get("images") or {}).get("common") or ""
+        if not img:
+            continue
+        for key in ("name", "name_cn"):
+            got = norm(it.get(key))
+            if got and want and (got == want or got in want or want in got):
+                return img
+        if not best:
+            best = img  # 没有严格匹配时用第一条有图的兜底
+    return best
+
+
+def attach_covers(works, log=print):
+    """给每条补 cover 字段，结果缓存 30 天。"""
+    cache = {}
+    try:
+        with open(COVERS, encoding="utf-8") as f:
+            data = json.load(f)
+        if time.time() - data.get("fetched_at", 0) < TTL:
+            cache = data["covers"]
+    except Exception:
+        pass
+
+    todo = [w["title"] for w in works if w["title"] not in cache]
+    if todo:
+        log(f"   MADB：补封面 {len(todo)} 条…")
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            for title, cover in zip(todo, pool.map(_search_cover, todo)):
+                cache[title] = cover
+        tmp = COVERS + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump({"fetched_at": int(time.time()), "covers": cache}, f, ensure_ascii=False)
+        os.replace(tmp, COVERS)
+
+    for w in works:
+        w["cover"] = cache.get(w["title"], "")
     return works

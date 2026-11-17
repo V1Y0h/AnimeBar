@@ -397,7 +397,7 @@ def archive_card(w):
     pub = w.get("publisher") or ""
     url = w.get("url") or ""
     return f"""<article class="card">
-      <div class="cover"><div class="ph"><span>{esc(title[:2])}</span></div></div>
+      <div class="cover">{f'<img loading="lazy" src="{esc(w["cover"])}" alt="">' if w.get("cover") else '<div class="ph"><span>▤</span></div>'}</div>
       <div class="body">
         <h3 title="{esc(title)}"><span class="l-zh">{esc(title)}</span><span class="l-en">{esc(title)}</span><span class="l-ja">{esc(title)}</span></h3>
         <p class="meta">{esc(year)} · {esc(pub)}</p>
@@ -450,7 +450,8 @@ def main():
         showings = []
     showing_cards = "\n".join(showing_card(m) for m in showings)
     try:
-        archive_cards = "\n".join(archive_card(w) for w in madb.early_works())
+        early = madb.attach_covers(madb.early_works())
+        archive_cards = "\n".join(archive_card(w) for w in early)
     except Exception as e:
         print(f"   MADB 档案取不到，跳过：{e}")
         archive_cards = '<p class="empty" style="grid-column:1/-1">—</p>' 
@@ -542,8 +543,8 @@ def main():
     <button data-mode="tv" class="on">{L('新番','TV')}</button>
     <button data-mode="movie">{L('剧场版','Films')}</button>
     <button data-mode="showing">{L('上映中','In cinemas')}</button>
-    <button data-mode="notes">{L('记录','Notes')}</button>
     <button data-mode="archive">{L('档案','Archive')}</button>
+    <button data-mode="notes">{L('记录','Notes')}</button>
     <span class="sep"></span>
     <span id="filters" class="tools">
       <button data-wd="0" class="on">{L('全部','All')}</button>{tabs}
@@ -660,7 +661,7 @@ def main():
       document.getElementById('view-' + id).hidden = (id !== mode);
     }}
     document.getElementById('filters').hidden = mode !== 'tv';
-    document.getElementById('sorts').hidden = mode === 'showing' || mode === 'notes';
+    document.getElementById('sorts').hidden = mode !== 'tv' && mode !== 'movie';
     if (mode === 'notes' && window.__loadCaptures) window.__loadCaptures();
     apply();
   }});
