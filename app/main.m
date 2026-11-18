@@ -1,7 +1,12 @@
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
 
-static NSString *const kDevDir = @"/Users/jerryli/Documents/deepseek-harness/实验/AnimeBar";
+// 开发时用 ANIMEBAR_DEV_DIR 指定仓库位置；源码里不写死个人路径。
+// 找不到就返回 nil，调用方的 fileExistsAtPath 会落到 bundle 或用户目录。
+static NSString *DevDir(void) {
+    NSString *p = NSProcessInfo.processInfo.environment[@"ANIMEBAR_DEV_DIR"];
+    return p.length ? p : nil;
+}
 
 static NSString *SupportDir(void) {
     NSString *p = [@"~/Library/Application Support/AnimeBar" stringByExpandingTildeInPath];
@@ -139,7 +144,7 @@ static NSString *NewNoteID(void) {
     if ([[NSFileManager defaultManager] fileExistsAtPath:s]) return s;
     NSString *b = ResPath(@"anime_board.html");
     if (b) return b;
-    return [kDevDir stringByAppendingPathComponent:@"build/anime_board.html"];
+    return [DevDir() stringByAppendingPathComponent:@"build/anime_board.html"];
 }
 
 - (NSString *)scriptPath {
@@ -147,7 +152,7 @@ static NSString *NewNoteID(void) {
     if ([[NSFileManager defaultManager] fileExistsAtPath:s]) return s;
     NSString *b = ResPath(@"anime_board.py");
     if (b) return b;
-    return [kDevDir stringByAppendingPathComponent:@"board/anime_board.py"];
+    return [DevDir() stringByAppendingPathComponent:@"board/anime_board.py"];
 }
 
 - (void)prepareSupport {

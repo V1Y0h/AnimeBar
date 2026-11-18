@@ -5,9 +5,10 @@
 
 ## 安装
 
+在本仓库根目录执行（路径用 `$PWD` 拼，不写死个人目录）：
+
 ```bash
-/Applications/IINA.app/Contents/MacOS/iina-plugin link \
-  "/Users/jerryli/Documents/deepseek-harness/实验/AnimeBar/integrations/iina/plugin"
+/Applications/IINA.app/Contents/MacOS/iina-plugin link "$PWD/integrations/iina/plugin"
 ```
 
 会在 `~/Library/Application Support/com.colliderli.iina/plugins/` 下建一个
