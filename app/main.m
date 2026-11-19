@@ -160,9 +160,20 @@ static NSString *NewNoteID(void) {
     NSString *dir = SupportDir();
     NSFileManager *fm = [NSFileManager defaultManager];
     NSString *script = [dir stringByAppendingPathComponent:@"anime_board.py"];
-    if (![fm fileExistsAtPath:script]) {
-        NSString *b = ResPath(@"anime_board.py");
-        if (b) [fm copyItemAtPath:b toPath:script error:nil];
+    // 脚本必须跟着 App 更新：只判断「存在」会让运行时一直用首次安装的旧脚本，
+    // 生成出来的页面永远是旧文案（这个坑排查过好几次）
+    NSString *b = ResPath(@"anime_board.py");
+    if (b) {
+        BOOL copy = ![fm fileExistsAtPath:script];
+        if (!copy) {
+            NSDate *oldDate = [[fm attributesOfItemAtPath:script error:nil] fileModificationDate];
+            NSDate *newDate = [[fm attributesOfItemAtPath:b error:nil] fileModificationDate];
+            copy = !oldDate || !newDate || [newDate compare:oldDate] == NSOrderedDescending;
+        }
+        if (copy) {
+            [fm removeItemAtPath:script error:nil];
+            [fm copyItemAtPath:b toPath:script error:nil];
+        }
     }
     NSString *assets = [dir stringByAppendingPathComponent:@"assets"];
     if (![fm fileExistsAtPath:assets]) {
