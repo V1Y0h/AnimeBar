@@ -425,6 +425,12 @@ def date_en(text):
     return f"Opened {MONTHS_EN[int(m.group(1)) - 1]} {int(m.group(2))}"
 
 
+def show_date(raw):
+    """上映数据是从日文页面抓的，日期字段常带「公開」「上映」后缀，去掉。"""
+    import re as _re
+    return _re.sub(r"\s*(公開|上映|ロードショー)\s*$", "", (raw or "").strip())
+
+
 def showing_card(m):
     cls = "hi" if m["score"] >= 8 else ("mid" if m["score"] >= 7 else "")
     badge = f'{m["score"]:.1f}' if m["score"] else L('上映中', 'Now')
@@ -442,7 +448,7 @@ def showing_card(m):
       </a>
       <div class="body">
         <h3><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['name'])[1])}</span><span class="l-ja">{esc(ja_titles.lookup(m['name']))}</span></h3>
-        <p class="meta">{L(esc(m['date']) or '上映中', date_en(m['date']) if m['date'] else 'In cinemas')}{(' · ' + esc(m['original'])) if (m.get('original') and m['original'] < '2025-01') else ''}</p>
+        <p class="meta">{L(esc(show_date(m['date'])) or '上映中', date_en(show_date(m['date'])) if m['date'] else 'In cinemas')}{(' · ' + esc(m['original'])) if (m.get('original') and m['original'] < '2025-01') else ''}</p>
         <div class="acts">
           <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['name'])[1])}" data-ja="{esc(ja_titles.lookup(m['name']))}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
