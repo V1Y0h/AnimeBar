@@ -430,7 +430,9 @@ def showing_card(m):
     badge = f'{m["score"]:.1f}' if m["score"] else L('上映中', 'Now')
     revival = ""
     if m.get("original") and m["original"] < "2025-01":
-        revival = '<span class="revival">' + L('リバイバル', 'Revival') + '</span>'
+        revival = ('<span class="revival"><span class="l-zh">重映</span>'
+               '<span class="l-en">Revival</span>'
+               '<span class="l-ja">リバイバル</span></span>')
     return f"""
     <article class="card showing {cls}" data-name="{esc(m['name'])}" data-score="{m['score']}">
       <a class="cover" href="{esc(m['url'])}" target="_blank" rel="noopener">
@@ -440,7 +442,7 @@ def showing_card(m):
       </a>
       <div class="body">
         <h3><span class="l-zh">{esc(m['name'])}</span><span class="l-en">{esc(titles(m['name'], m['name'])[1])}</span><span class="l-ja">{esc(ja_titles.lookup(m['name']))}</span></h3>
-        <p class="meta">{L(esc(m['date']) or '上映中', date_en(m['date']) if m['date'] else 'In cinemas')}{(' · ' + L('原','orig.') + ' ' + esc(m['original'])) if m.get('original') else ''}</p>
+        <p class="meta">{L(esc(m['date']) or '上映中', date_en(m['date']) if m['date'] else 'In cinemas')}{(' · <span class="l-zh">原标题</span><span class="l-en">original title</span><span class="l-ja">原題</span> ' + esc(m['original'])) if m.get('original') else ''}</p>
         <div class="acts">
           <a class="detail" href="{esc(m['url'])}" data-bgm="{esc(m['url'])}" data-title="{esc(m['name'])}" data-en="{esc(titles(m['name'], m['name'])[1])}" data-ja="{esc(ja_titles.lookup(m['name']))}" target="_blank" rel="noopener" title="映画.com">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(m['name'])}">{L('复制','Copy')}</button>
