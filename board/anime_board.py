@@ -180,6 +180,54 @@ def L(zh, en):
     return f'<span class="l-zh">{zh}</span><span class="l-en">{en}</span>'
 
 
+SALVAGE_SIGMA = 1.9
+SALVAGE_MIN_VOTES = 15
+SALVAGE_HOT_VOTES = 80
+SALVAGE_HOT_DOING = 300
+SALVAGE_OVERLOOKED_TOP = 6.9
+SALVAGE_OVERLOOKED_VOTES = 80
+
+
+def salvage_of(it):
+    """反共识打捞分类。规则与插件 index.js 的 classifySalvage 一致。"""
+    r = it.get("rating") or {}
+    score = float(r.get("score") or 0)
+    votes = int(r.get("total") or 0)
+    doing = int((it.get("collection") or {}).get("doing") or 0)
+    counts = r.get("count") or {}
+    sigma = 0.0
+    if counts and votes >= 10:
+        var = sum(int(counts.get(str(x), 0)) * (x - score) ** 2 for x in range(1, 11))
+        sigma = (var / votes) ** 0.5
+
+    if score == 0 or votes < SALVAGE_MIN_VOTES:
+        return {"bucket": 2, "signal": "blindspot", "sigma": sigma,
+                "reason": ("暂无评分", "no ratings yet", "評価なし") if votes == 0
+                else (f"仅 {votes} 人评分 · 视线盲区", f"only {votes} votes · barely rated",
+                      f"わずか {votes}人 · 圏外")}
+    if sigma >= SALVAGE_SIGMA:
+        return {"bucket": 1, "signal": "polarized", "sigma": sigma,
+                "reason": (f"均分 {score:.1f} · 评价撕裂 (σ={sigma:.2f}, {votes}人)",
+                           f"avg {score:.1f} · polarizing (σ={sigma:.2f}, {votes} votes)",
+                           f"平均 {score:.1f} · 評価が真っ二つ (σ={sigma:.2f}, {votes}人)")}
+    if score < 6.0:
+        if votes >= SALVAGE_HOT_VOTES or doing >= SALVAGE_HOT_DOING:
+            return {"bucket": 1, "signal": "trainwreck", "sigma": sigma,
+                    "reason": (f"低分 {score:.1f} · {votes}人评分 / {doing}人在看",
+                               f"low {score:.1f} · {votes} votes / {doing} watching",
+                               f"低評価 {score:.1f} · {votes}人が評価 / {doing}人が視聴中")}
+        return {"bucket": 3, "signal": "lowprofile", "sigma": sigma,
+                "reason": (f"低分 {score:.1f} · 关注度低 ({votes}人)",
+                           f"low {score:.1f} · little attention ({votes})",
+                           f"低評価 {score:.1f} · 注目度低 ({votes}人)")}
+    if score < SALVAGE_OVERLOOKED_TOP and votes < SALVAGE_OVERLOOKED_VOTES:
+        return {"bucket": 3, "signal": "overlooked", "sigma": sigma,
+                "reason": (f"边缘均分 {score:.1f} · 仅 {votes} 人关注",
+                           f"borderline {score:.1f} · only {votes} votes",
+                           f"平均 {score:.1f} · わずか {votes}人")}
+    return {"bucket": 4, "signal": "consensus", "sigma": sigma, "reason": ("", "", "")}
+
+
 def card(it):
     name = it.get("name_cn") or it.get("name") or ""
     orig = it.get("name") or ""
@@ -211,10 +259,15 @@ def card(it):
     img = img.replace("http://", "https://") or GHOST
 
     cls = "hi" if score >= 8 else ("mid" if score >= 7 else "")
+    sv = salvage_of(it)
+    rz, re_, rj = sv["reason"]
+    reason_html = (f'<p class="syo-reason"><span class="l-zh">{rz}</span>'
+                   f'<span class="l-en">{re_}</span><span class="l-ja">{rj}</span></p>') if rz else ""
     zh, en = titles(name, orig)
     q = urllib.parse.quote(name)
     return f"""
-    <article class="card {cls}" data-wd="{wd}" data-name="{esc(name)}{esc(orig)}" data-score="{score}" data-pop="{total}" data-date="{esc(air)}">
+    <article class="card {cls}" data-wd="{wd}" data-name="{esc(name)}{esc(orig)}" data-score="{score}" data-pop="{total}" data-date="{esc(air)}"
+      data-signal="{sv['signal']}" data-bucket="{sv['bucket']}" data-sigma="{sv['sigma']:.2f}">
       <a class="cover" href="{esc(url)}" target="_blank" rel="noopener">
         <img loading="lazy" src="{esc(img or GHOST)}" alt="{esc(name)}" onerror="this.onerror=null;this.src='{GHOST}'">
         {scores.badges(score, scores.alt(name, orig), scores.kitsu_alt(name, orig))}
@@ -223,6 +276,7 @@ def card(it):
         <h3 title="{esc(orig)}"><span class="l-zh">{esc(zh)}</span><span class="l-en">{esc(en)}</span><span class="l-ja">{esc(ja_titles.lookup(orig))}</span></h3>
         <p class="meta">{L(DAYS[wd-1], EN_DAYS[wd-1]) if 1 <= wd <= 7 else '—'} · {esc(air)} · {total}{L(' 人评',' ratings')}</p>
         {syo_line}
+        {reason_html}
         <div class="acts">
           <a class="detail" href="{esc(url)}" data-bgm="{esc(url)}" data-title="{esc(name)}" data-en="{esc(en)}" data-ja="{esc(ja_titles.lookup(orig))}" target="_blank" rel="noopener">{L('详情','Details')}</a>
           <button class="cp" data-name="{esc(name)}">{L('复制','Copy')}</button>
@@ -449,6 +503,24 @@ def main():
         sched = syoboi.schedule(items)
         for it in items:
             it["_syo"] = sched.get(str(it["id"]))
+        # 写给 DSH 插件读：两边共用一份判定结果，避免在 JS 里重写匹配逻辑
+        try:
+            import os as _os
+            shared_dir = _os.path.expanduser("~/Library/Application Support/AnimeBar/shared")
+            _os.makedirs(shared_dir, exist_ok=True)
+            payload = {
+                "generated_at": int(__import__("time").time()),
+                "items": {k: {"time": v["time"], "channel": v["channel"],
+                              "weekday": v["weekday"], "title": v["title"]}
+                          for k, v in sched.items()},
+            }
+            tmp = _os.path.join(shared_dir, "schedule-times.json.tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False)
+            _os.replace(tmp, _os.path.join(shared_dir, "schedule-times.json"))
+            print(f"   共享放送时间：{len(sched)} 条 → shared/schedule-times.json")
+        except Exception as e:
+            print(f"   共享文件写入失败：{e}")
     except Exception as e:
         print(f"   放送时间取不到，跳过：{e}")
 
@@ -467,6 +539,33 @@ def main():
     try:
         early = madb.attach_covers(madb.early_works())
         archive_cards = "\n".join(archive_card(w) for w in early)
+        # 同一份档案也给 DSH 面板用，避免两端各拉一次
+        try:
+            import os as _os
+            shared_dir = _os.path.expanduser("~/Library/Application Support/AnimeBar/shared")
+            _os.makedirs(shared_dir, exist_ok=True)
+            # 英文名在这里算好：中文缺失用日文原文，英文缺失用罗马音，
+            # 和页面上的规则一致，DSH 端不必再实现一遍
+            payload = []
+            for w in early:
+                ja_title = w.get("title") or ""
+                zh_title = w.get("bgm_cn") or ja_title
+                payload.append({
+                    "title": ja_title,
+                    "zh": zh_title,
+                    "en": english_title(zh_title, ja_title) or romanize(ja_title),
+                    "date": w.get("date", ""),
+                    "publisher": w.get("publisher", ""),
+                    "url": w.get("url", ""),
+                    "cover": w.get("cover", ""),
+                })
+            tmp = _os.path.join(shared_dir, "madb-early.json.tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False)
+            _os.replace(tmp, _os.path.join(shared_dir, "madb-early.json"))
+            print(f"   共享档案：{len(payload)} 条 → shared/madb-early.json")
+        except Exception as e:
+            print(f"   共享档案写入失败：{e}")
     except Exception as e:
         print(f"   MADB 档案取不到，跳过：{e}")
         archive_cards = '<p class="empty" style="grid-column:1/-1">—</p>' 
@@ -525,6 +624,8 @@ def main():
   .card.mid .score {{ color:var(--warn); }}
   .body {{ padding:12px; display:flex; flex-direction:column; gap:8px; flex:1; }}
   h3 {{ margin:0; font-size:13px; font-weight:600; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }}
+  .syo-reason {{ display:none; margin:2px 0 0; font-size:10.5px; color:var(--dim); }}
+  body.salvage .syo-reason {{ display:block; }}
   .meta {{ margin:0; font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums; }}
   .acts {{ display:flex; gap:6px; margin-top:auto; flex-wrap:wrap; }}
   .acts a, .acts button {{ font-size:11px; padding:4px 9px; border-radius:7px; border:1px solid var(--line); background:transparent; color:var(--dim); text-decoration:none; line-height:1.4; }}
@@ -563,6 +664,7 @@ def main():
     <span class="sep"></span>
     <span id="filters" class="tools">
       <button data-wd="0" class="on">{L('全部','All')}</button>{tabs}
+      <button data-salvage="1"><span class="l-zh">打捞</span><span class="l-en">Rediscover</span><span class="l-ja">発掘</span></button>
     </span>
     <span id="sorts" class="sortgroup">
       <button data-sort="pop" class="on">{L('按热度','Popular')}</button>
@@ -690,6 +792,29 @@ def main():
     scoreFilter = b.dataset.score;
     document.querySelectorAll('button[data-score]').forEach(x => x.classList.toggle('on', x === b));
     apply();
+  }});
+  let salvageOn = false;
+  function applySalvage() {{
+    const grid = document.getElementById('view-tv');
+    const cards = [...grid.children];
+    if (salvageOn) {{
+      cards.sort((a, b) => {{
+        const ba = Number(a.dataset.bucket || 9), bb = Number(b.dataset.bucket || 9);
+        if (ba !== bb) return ba - bb;
+        const va = Number(a.dataset.votes || 0), vb = Number(b.dataset.votes || 0);
+        // 盲区桶越冷越前，其余桶越热越前
+        return a.dataset.signal === 'blindspot' ? va - vb : vb - va;
+      }});
+    }} else {{
+      reorder();
+    }}
+    cards.forEach((c) => grid.appendChild(c));
+    document.body.classList.toggle('salvage', salvageOn);
+    document.querySelectorAll('button[data-sort]').forEach((b) => {{ b.hidden = salvageOn; }});
+    document.querySelectorAll('button[data-salvage]').forEach((b) => b.classList.toggle('on', salvageOn));
+  }}
+  document.querySelectorAll('button[data-salvage]').forEach((b) => {{
+    b.onclick = () => {{ salvageOn = !salvageOn; applySalvage(); }};
   }});
   q.oninput = apply;
   document.querySelectorAll('.watch').forEach(b => b.onclick = () => {{
