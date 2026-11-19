@@ -626,6 +626,8 @@ def main():
   h3 {{ margin:0; font-size:13px; font-weight:600; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }}
   .syo-reason {{ display:none; margin:2px 0 0; font-size:10.5px; color:var(--dim); }}
   body.salvage .syo-reason {{ display:block; }}
+  /* 打捞模式下主流共识作直接不显示：都开了这个功能，就不该再被选回来 */
+  body.salvage .card[data-bucket="4"] {{ display:none; }}
   .meta {{ margin:0; font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums; }}
   .acts {{ display:flex; gap:6px; margin-top:auto; flex-wrap:wrap; }}
   .acts a, .acts button {{ font-size:11px; padding:4px 9px; border-radius:7px; border:1px solid var(--line); background:transparent; color:var(--dim); text-decoration:none; line-height:1.4; }}
